@@ -34,7 +34,7 @@ def get_eof_index(buff, msg):
 
 class ResponseThread(Thread):
     def __init__(self, secure_socket):
-        Thread.__init__(self)
+        super(ResponseThread, self).__init__()
         self.swcz = secure_socket
 
     def run(self):

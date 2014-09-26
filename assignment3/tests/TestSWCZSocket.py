@@ -19,12 +19,13 @@ class Test1Thread(ClientThread):
 class TestHandler(ResponseHandler):
     def __init__(self, swczsock):
         self.sock = swczsock
+        self.passed = False
 
     def handle(self, message):
-        print('Recieved ' + message)
+        self.passed = message == 'foo'
         self.sock.close()
 
-class SWCZSocketTest(unittest.TestCase):
+class TestSWCZSocket(unittest.TestCase):
 
     def setUp(self):
         HOST = '' # Symbolic name meaning all available interfaces
@@ -42,9 +43,10 @@ class SWCZSocketTest(unittest.TestCase):
         handler = TestHandler(swcz)
         swcz.listen_async(handler)
         time.sleep(0.2)
+        self.assertTrue(handler.passed)
         self.socket.close()
 
-class SWCZSocketUtilsTest(unittest.TestCase):
+class TestSWCZSocketUtils(unittest.TestCase):
     
     def test_is_char_derefed_yes1(self):
         buff = 'foo' + DER + EOF
