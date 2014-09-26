@@ -34,6 +34,7 @@ def get_eof_index(buff, msg):
 
 class ResponseThread(Thread):
     def __init__(self, secure_socket):
+        Thread.__init__(self)
         self.swcz = secure_socket
 
     def run(self):
@@ -52,12 +53,12 @@ class ResponseThread(Thread):
                 message = buff[eof_index + 1:]
 
 class SWCZSocket:
-
-    def __init__(self, sock, g, p, secret_int, shared_key, is_server):
-        """ Creates new secure socket layout wrapper around sock,
+    """ Creates new secure socket layout wrapper around sock,
         a socket.socket
         The socket uses the value g, p, secret_int for encryption,
         and shared_key for authorization """
+    
+    def __init__(self, sock, g, p, secret_int, shared_key, is_server):
         self.socket = sock
         self.g = g
         self.p = p
@@ -72,7 +73,7 @@ class SWCZSocket:
     def listen_async(self, handler):
         self.handler = handler
         self.response_thread = ResponseThread(self)
-        self.response_thread.run()
+        self.response_thread.start()
 
     def send(self, message):
         socket.send(message) # TODO do encryption

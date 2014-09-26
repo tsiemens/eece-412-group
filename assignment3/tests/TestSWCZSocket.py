@@ -1,7 +1,7 @@
 import unittest
 import socket
 from threading import Thread
-from SWCZSocket import *
+from assignment3.SWCZSocket import *
 import time
 
 PORT = 55555 # Arbitrary non-privileged port
