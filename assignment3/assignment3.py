@@ -1,13 +1,13 @@
 #!/usr/bin/python2.7
 
 from Tkinter import Tk
-import guiInterface
+from SWCZ import SWCZ
 
 
 def main():
     root = Tk()
 
-    app = guiInterface.MainGui(root)
+    app = SWCZ(root)
     root.mainloop()
 
 if __name__ == "__main__":
