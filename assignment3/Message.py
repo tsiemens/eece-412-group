@@ -1,37 +1,32 @@
 import hashlib, hmac
 
 class Message(object):
-    def __init__(self, key, string):
+    def __init__(self, key):
         self.key = key
-        self.string = string
 
-    def sign(self):
-        """ Signs the string and appends the hmac; Ready for encryption """
-        return self.string + Message.compute_digest(self.key, self.string)
+    def sign(self, plaintext):
+        """ Signs the plaintext and appends the hmac; Ready for encryption """
+        return plaintext + self.compute_digest(plaintext)
 
-    def verify(self):
+    def verify(self, hashed_plaintext):
         """ Parses the plaintext from the hmac and verifies authenticity """
-        plaintext = self.get_message()
+        plaintext = self.get_message(hashed_plaintext)
         if (plaintext):
-            other_hmac = self.string[-128:]
-            our_hmac = Message.compute_digest(self.key, plaintext)
+            other_hmac = hashed_plaintext[-128:]
+            our_hmac = self.compute_digest(plaintext)
             return other_hmac == our_hmac
             # TODO: Figure out where to get timing attack resistance digest compare
             # TODO: Shown as present in python 2.7.8?
             # return hmac.compare_digest(other_hmac, our_hmac)
         return False
 
-    def get_message(self):
+    def get_message(self, hashed_plaintext):
         """ Parses the plaintext from the hmac """
-        if (len(self.string) > 128):
-            return self.string[:-128]
+        if (len(hashed_plaintext) > 128):
+            return hashed_plaintext[:-128]
         return False
 
-
-    # @classmethod
-    # def compute_digest(cls, key, string):
-    @staticmethod
-    def compute_digest(key, string):
-        return hmac.new(key, string, hashlib.sha512).hexdigest()
+    def compute_digest(self, plaintext):
+        return hmac.new(self.key, plaintext, hashlib.sha512).hexdigest()
 
 
