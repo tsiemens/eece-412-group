@@ -1,7 +1,5 @@
 from modgrammar import *
 
-EOF = '\x04'
-
 grammar_whitespace_mode = 'explicit'
 
 class Integer(Grammar):
