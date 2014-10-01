@@ -1,11 +1,17 @@
 #!/usr/bin/python2.7
+try:
+	from Tkinter import Tk
+except ImportError:
+	from tkinter import Tk
+	
+from SWCZ import SWCZ
 
-import tkinter
-import guiInterface
 
 def main():
-	print("Hello World!")
-	mainGui = guiInterface.MainGui(None)
-	
+    root = Tk()
+
+    app = SWCZ(root)
+    root.mainloop()
+
 if __name__ == "__main__":
 	main()
