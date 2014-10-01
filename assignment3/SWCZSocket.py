@@ -4,9 +4,11 @@ from threading import Thread
 EOF = '\x04'
 DER = '\\'
 
+
 class ResponseHandler:
     def handle(self, message):
         pass
+
 
 def count_derefs_before(string, index):
     deref_count = 0
@@ -22,15 +24,17 @@ def is_char_derefed(buff, char_index, msg):
     deref_count, is_to_first = count_derefs_before(buff, char_index)
     if not is_to_first:
         return deref_count % 2 != 0
-        
+
     deref_count += count_derefs_before(msg, len(msg))[0]
     return deref_count % 2 != 0
+
 
 def get_eof_index(buff, msg):
     for i in range(0, len(buff)):
         if buff[i] == EOF and not is_char_derefed(buff, i, msg):
             return i
     return -1
+
 
 class ResponseThread(Thread):
     def __init__(self, secure_socket):
@@ -52,12 +56,13 @@ class ResponseThread(Thread):
                 self.swcz.handle(message)
                 message = buff[eof_index + 1:]
 
+
 class SWCZSocket:
     """ Creates new secure socket layout wrapper around sock,
         a socket.socket
         The socket uses the value g, p, secret_int for encryption,
         and shared_key for authorization """
-    
+
     def __init__(self, sock, g, p, secret_int, shared_key, is_server):
         self.socket = sock
         self.g = g
@@ -68,7 +73,7 @@ class SWCZSocket:
 
     def do_handshake(self):
         """ Performs the initialization and authentication of the channel """
-        pass # TODO
+        pass  # TODO
 
     def listen_async(self, handler):
         self.handler = handler
@@ -76,7 +81,7 @@ class SWCZSocket:
         self.response_thread.start()
 
     def send(self, message):
-        socket.send(message) # TODO do encryption
+        socket.send(message)  # TODO do encryption
 
     def handle(self, message):
         if self.handler is not None:
@@ -84,4 +89,3 @@ class SWCZSocket:
 
     def close(self):
         self.socket.close()
-

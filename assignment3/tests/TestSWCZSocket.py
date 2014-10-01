@@ -4,7 +4,8 @@ from threading import Thread
 from assignment3.SWCZSocket import *
 import time
 
-PORT = 55555 # Arbitrary non-privileged port
+PORT = 55555  # Arbitrary non-privileged port
+
 
 class ClientThread(Thread):
     def __init__(self):
@@ -12,9 +13,11 @@ class ClientThread(Thread):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.connect((HOST, PORT))
 
+
 class Test1Thread(ClientThread):
     def run(self):
         self.socket.sendall('foo' + EOF)
+
 
 class TestHandler(ResponseHandler):
     def __init__(self, swczsock):
@@ -25,10 +28,11 @@ class TestHandler(ResponseHandler):
         self.passed = message == 'foo'
         self.sock.close()
 
+
 class TestSWCZSocket(unittest.TestCase):
 
     def setUp(self):
-        HOST = '' # Symbolic name meaning all available interfaces
+        HOST = ''  # Symbolic name meaning all available interfaces
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.socket.bind((HOST, PORT))
@@ -38,7 +42,7 @@ class TestSWCZSocket(unittest.TestCase):
         thread = Test1Thread()
         conn, addr = self.socket.accept()
         thread.run()
-        
+
         swcz = SWCZSocket(conn, 2, 4, 6, "shared", True)
         handler = TestHandler(swcz)
         swcz.listen_async(handler)
@@ -46,8 +50,9 @@ class TestSWCZSocket(unittest.TestCase):
         self.assertTrue(handler.passed)
         self.socket.close()
 
+
 class TestSWCZSocketUtils(unittest.TestCase):
-    
+
     def test_is_char_derefed_yes1(self):
         buff = 'foo' + DER + EOF
         msg = ''
@@ -57,7 +62,7 @@ class TestSWCZSocketUtils(unittest.TestCase):
         buff = DER + DER + EOF
         msg = 'foo' + DER + DER + DER
         self.assertTrue(is_char_derefed(buff, 2, msg) is True)
-    
+
     def test_is_char_derefed_no1(self):
         buff = 'foo' + DER + DER + EOF
         msg = ''
@@ -77,7 +82,7 @@ class TestSWCZSocketUtils(unittest.TestCase):
         buff = 'foo'
         msg = ''
         self.assertEquals(get_eof_index(buff, msg), -1)
-    
+
     def test_get_eof_index(self):
         buff = 'foo' + EOF + "bar"
         msg = ''

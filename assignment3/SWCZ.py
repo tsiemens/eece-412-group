@@ -1,8 +1,9 @@
 try:
-	from Tkinter import *
+    from Tkinter import *
 except ImportError:
-	from tkinter import *
-	
+    from tkinter import *
+
+
 class SWCZ(Frame):
     def __init__(self, parent=None):
             Frame.__init__(self, parent)
@@ -23,7 +24,8 @@ class SWCZ(Frame):
                 value=1,
                 command=self.on_mode_select
             )
-            self.server_select.grid(column=1, columnspan=15, row=0, sticky='EW')
+            self.server_select.grid(column=1, columnspan=15, row=0,
+                                    sticky='EW')
 
             self.client_select = Radiobutton(
                 self,
@@ -32,7 +34,8 @@ class SWCZ(Frame):
                 value=2,
                 command=self.on_mode_select
             )
-            self.client_select.grid(column=1, columnspan=15, row=1, sticky='EW')
+            self.client_select.grid(column=1, columnspan=15, row=1,
+                                    sticky='EW')
 
             # IP Entry Widget
             self.ip_label = Label(self, text="IP: ", anchor="w")
@@ -65,7 +68,7 @@ class SWCZ(Frame):
                 command=self.on_connect_button_press
             )
             self.connect_button.grid(column=10, columnspan=6, row=3,
-                                    sticky='EW')
+                                     sticky='EW')
 
             # Message Display
             self.message_label = Label(self, text="Messages: ", anchor="w")
@@ -80,8 +83,8 @@ class SWCZ(Frame):
                 relief='sunken',
                 textvariable=self.messages
             )
-            self.message_display.grid(column=1, columnspan=7, row=6, rowspan=10,
-                                     sticky='EW')
+            self.message_display.grid(column=1, columnspan=7, row=6,
+                                      rowspan=10, sticky='EW')
 
             # Debug Display
             self.debug_label = Label(self, text="Debug: ", anchor="w")
@@ -97,28 +100,29 @@ class SWCZ(Frame):
                 textvariable=self.debug
             )
             self.debug_display.grid(column=10, columnspan=5, row=6, rowspan=10,
-                                   sticky='EW')
+                                    sticky='EW')
 
             # Continue Button
             self.continue_button = Button(self, text="Continue",
-                                         command=self.on_continue_button_press)
+                                          command=self.on_continue_button_press)
             self.continue_button.grid(column=10, columnspan=6, row=16,
-                                     sticky='EW')
+                                      sticky='EW')
 
             # Send Message Entry Widget
             self.send_message_label = Label(self, text="Message To Send: ",
-                                          anchor="w")
+                                            anchor="w")
             self.send_message_label.grid(column=1, columnspan=10, row=17,
-                                       sticky='EW')
+                                         sticky='EW')
 
             self.send_message = StringVar()
-            self.send_message_entry = Entry(self, textvariable=self.send_message)
+            self.send_message_entry = Entry(self,
+                                            textvariable=self.send_message)
             self.send_message_entry.grid(column=1, columnspan=10, row=18,
-                                       sticky='EW')
+                                         sticky='EW')
 
             # Send Button
             self.send_button = Button(self, text="Send",
-                                     command=self.on_send_button_press)
+                                      command=self.on_send_button_press)
             self.send_button.grid(column=12, columnspan=4, row=18, sticky='EW')
 
             # General Configuration

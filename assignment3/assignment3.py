@@ -1,9 +1,9 @@
 #!/usr/bin/python2.7
 try:
-	from Tkinter import Tk
+    from Tkinter import Tk
 except ImportError:
-	from tkinter import Tk
-	
+    from tkinter import Tk
+
 from SWCZ import SWCZ
 
 
@@ -14,4 +14,4 @@ def main():
     root.mainloop()
 
 if __name__ == "__main__":
-	main()
+    main()
