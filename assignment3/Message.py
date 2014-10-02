@@ -18,11 +18,11 @@ class Message(object):
             # TODO: Figure out where to get timing attack resistance digest compare
             # TODO: Shown as present in python 2.7.8?
             # return hmac.compare_digest(other_hmac, our_hmac)
-        return False
+        return None
 
     def get_message(self, hashed_plaintext):
         """ Parses the plaintext from the hmac """
-        if (len(hashed_plaintext) > 128):
+        if len(hashed_plaintext) > 128:
             return hashed_plaintext[:-128]
         return False
 
