@@ -11,7 +11,7 @@ class Message(object):
     def verify(self, hashed_plaintext):
         """ Parses the plaintext from the hmac and verifies authenticity """
         plaintext = self.get_message(hashed_plaintext)
-        if (plaintext):
+        if plaintext:
             other_hmac = hashed_plaintext[-128:]
             our_hmac = self.compute_digest(plaintext)
             return other_hmac == our_hmac
