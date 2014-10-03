@@ -10,6 +10,11 @@ class ResponseHandler:
         pass
 
 
+class MessageLogger:
+    def log(self, messsage):
+        pass
+
+
 def count_derefs_before(string, index):
     deref_count = 0
     for i in range(index - 1, -1, -1):
@@ -41,6 +46,11 @@ class ResponseThread(Thread):
         super(ResponseThread, self).__init__()
         self.swcz = secure_socket
 
+    def stop(self):
+        if self.process:
+            print("terminating")
+            self.process.terminate()
+
     def run(self):
         message = ''
         while True:
@@ -70,6 +80,11 @@ class SWCZSocket:
         self.secret = secret_int
         self.shared_key = shared_key
         self.gen_key = None
+        self.logger = None
+        self.response_thread = None
+
+    def set_logger(self, logger):
+        self.logger = logger
 
     def do_handshake(self):
         """ Performs the initialization and authentication of the channel """
@@ -81,11 +96,21 @@ class SWCZSocket:
         self.response_thread.start()
 
     def send(self, message):
-        socket.send(message)  # TODO do encryption
+        self.socket.send(message + EOF)  # TODO do encryption
+        if self.logger:
+            self.logger.log("SENT:'%s'" % message)
 
     def handle(self, message):
+        if self.logger:
+            self.logger.log("RCV:'%s'" % message)
+
         if self.handler is not None:
             self.handler.handle(message)
 
     def close(self):
+        print("stopping thread")
+        if self.response_thread:
+            response_thread.exit()
+        print("closing socket...")
         self.socket.close()
+        print("closed socket")

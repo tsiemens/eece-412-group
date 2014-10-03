@@ -3,12 +3,12 @@ try:
 except ImportError:
     from tkinter import *
 
-
 class ViewListener(object):
     def on_mode_select(self): pass
     def on_connect_button_press(self): pass
     def on_continue_button_press(self): pass
     def on_send_button_press(self): pass
+    def on_window_destroyed(self): pass
 
 RADIO_SERVER = 1
 RADIO_CLIENT = 2
@@ -140,7 +140,26 @@ class SWCZ(Frame):
             self.parent.grid_columnconfigure(0, weight=1)
             self.parent.grid_rowconfigure(0, weight=1)
             self.update()
+
+
+            self.parent.protocol("WM_DELETE_WINDOW", self._delete_window)
+            self.parent.bind("<Destroy>", self._destroy)
             #self.geometry(self.geometry())
+    
+    def _delete_window(self):
+        print("delete")
+        try:
+            self.listener.on_window_destroyed()
+            self.parent.destroy()
+        except:
+            pass
+
+    def _destroy(self, event):
+        print("destroy")
+        pass
+    
+    def is_mode_server(self):
+            return self.mode.get() == RADIO_SERVER
 
     def add_message(self, message):
         add_lines_to_text(self.message_display, message)
@@ -152,3 +171,4 @@ class SWCZ(Frame):
 def add_lines_to_text(tktext, message):
     tktext.insert(END, message)
     tktext.see(END)
+
