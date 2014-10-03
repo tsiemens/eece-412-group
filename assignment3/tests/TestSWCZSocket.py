@@ -24,7 +24,7 @@ class TestHandler(ResponseHandler):
         self.sock = swczsock
         self.passed = False
 
-    def handle(self, message):
+    def handle_response(self, message):
         self.passed = message == 'foo'
         self.sock.close()
 

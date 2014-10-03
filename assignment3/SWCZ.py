@@ -2,16 +2,38 @@ try:
     from Tkinter import *
 except ImportError:
     from tkinter import *
+from abc import ABCMeta, abstractmethod
 
+class ViewListener(object):
+    __metaclass__ = ABCMeta
+
+    @abstractmethod
+    def on_mode_select(self): pass
+
+    @abstractmethod
+    def on_connect_button_press(self): pass
+
+    @abstractmethod
+    def on_continue_button_press(self): pass
+
+    @abstractmethod
+    def on_send_button_press(self): pass
+
+    @abstractmethod
+    def on_window_destroyed(self): pass
+
+RADIO_SERVER = 1
+RADIO_CLIENT = 2
 
 class SWCZ(Frame):
-    def __init__(self, parent=None):
+    def __init__(self, listener, parent=None):
             Frame.__init__(self, parent)
             self.parent = parent
+            self.listener = listener
             self.initialize()
 
     def initialize(self):
-            self.grid()
+            self.grid(sticky=NSEW)
 
             # Client/Server Radio Buttons
             self.mode = IntVar()
@@ -21,8 +43,8 @@ class SWCZ(Frame):
                 self,
                 text="Server",
                 variable=self.mode,
-                value=1,
-                command=self.on_mode_select
+                value=RADIO_SERVER,
+                command=self.listener.on_mode_select
             )
             self.server_select.grid(column=1, columnspan=15, row=0,
                                     sticky='EW')
@@ -31,8 +53,8 @@ class SWCZ(Frame):
                 self,
                 text="Client",
                 variable=self.mode,
-                value=2,
-                command=self.on_mode_select
+                value=RADIO_CLIENT,
+                command=self.listener.on_mode_select
             )
             self.client_select.grid(column=1, columnspan=15, row=1,
                                     sticky='EW')
@@ -65,7 +87,7 @@ class SWCZ(Frame):
             self.connect_button = Button(
                 self,
                 text="Connect",
-                command=self.on_connect_button_press
+                command=self.listener.on_connect_button_press
             )
             self.connect_button.grid(column=10, columnspan=6, row=3,
                                      sticky='EW')
@@ -74,14 +96,10 @@ class SWCZ(Frame):
             self.message_label = Label(self, text="Messages: ", anchor="w")
             self.message_label.grid(column=1, columnspan=7, row=5, sticky='EW')
 
-            self.messages = StringVar()
-            self.message_display = Label(
+            self.message_display = Text(
                 self,
                 height=9,
-                anchor='w',
-                justify='left',
-                relief='sunken',
-                textvariable=self.messages
+                relief='sunken'
             )
             self.message_display.grid(column=1, columnspan=7, row=6,
                                       rowspan=10, sticky='EW')
@@ -90,21 +108,17 @@ class SWCZ(Frame):
             self.debug_label = Label(self, text="Debug: ", anchor="w")
             self.debug_label.grid(column=10, columnspan=5, row=5, sticky='EW')
 
-            self.debug = StringVar()
-            self.debug_display = Label(
+            self.debug_display = Text(
                 self,
                 height=9,
-                anchor='w',
-                justify='left',
                 relief='sunken',
-                textvariable=self.debug
             )
             self.debug_display.grid(column=10, columnspan=5, row=6, rowspan=10,
                                     sticky='EW')
 
             # Continue Button
             self.continue_button = Button(self, text="Continue",
-                                          command=self.on_continue_button_press)
+                                          command=self.listener.on_continue_button_press)
             self.continue_button.grid(column=10, columnspan=6, row=16,
                                       sticky='EW')
 
@@ -122,30 +136,48 @@ class SWCZ(Frame):
 
             # Send Button
             self.send_button = Button(self, text="Send",
-                                      command=self.on_send_button_press)
+                                      command=self.listener.on_send_button_press)
             self.send_button.grid(column=12, columnspan=4, row=18, sticky='EW')
 
             # General Configuration
             self.grid_columnconfigure(0, weight=1)
             for i in range(1, 15):
-                    self.grid_columnconfigure(i, weight=10, minsize=5)
+                    self.grid_columnconfigure(i, weight=1, minsize=5)
             self.grid_columnconfigure(16, weight=1)
 
             for i in range(0, 17):
-                    self.grid_rowconfigure(i, weight=10, minsize=5)
+                    self.grid_rowconfigure(i, weight=1, minsize=5)
 
             self.parent.resizable(True, False)
+            self.parent.grid_columnconfigure(0, weight=1)
+            self.parent.grid_rowconfigure(0, weight=1)
             self.update()
-            #self.geometry(self.geometry())
 
-    def on_mode_select(self):
-            print("Selected " + str(self.mode.get()) + " mode")
+            self.parent.protocol("WM_DELETE_WINDOW", self._delete_window)
+            self.parent.bind("<Destroy>", self._destroy)
+    
+    def _delete_window(self):
+        print("delete")
+        try:
+            self.listener.on_window_destroyed()
+            self.parent.destroy()
+        except:
+            pass
 
-    def on_connect_button_press(self):
-            print("You pressed the connect button!")
+    def _destroy(self, event):
+        print("destroy")
+    
+    def is_mode_server(self):
+        return self.mode.get() == RADIO_SERVER
 
-    def on_continue_button_press(self):
-            print("You pressed the continue button!")
+    def add_message(self, message):
+        self.add_lines_to_text(self.message_display, message)
+    
+    def add_debug_message(self, message):
+        self.add_lines_to_text(self.debug_display, message)
 
-    def on_send_button_press(self):
-            print("You pressed the send button!")
+    @staticmethod
+    def add_lines_to_text(tktext, message):
+        tktext.insert(END, message)
+        tktext.see(END)
+

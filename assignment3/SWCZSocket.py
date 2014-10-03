@@ -1,13 +1,24 @@
-import socket
+import select, socket
+from Queue import Queue
 from threading import Thread
+from abc import ABCMeta, abstractmethod
 
 EOF = '\x04'
 DER = '\\'
 
 
-class ResponseHandler:
-    def handle(self, message):
-        pass
+class ResponseHandler(object):
+    __metaclass__ = ABCMeta
+
+    @abstractmethod
+    def handle_response(self, message): pass
+
+
+class MessageLogger(object):
+    __metaclass__ = ABCMeta
+
+    @abstractmethod
+    def log(self, messsage): pass
 
 
 def count_derefs_before(string, index):
@@ -40,24 +51,40 @@ class ResponseThread(Thread):
     def __init__(self, secure_socket):
         super(ResponseThread, self).__init__()
         self.swcz = secure_socket
+        self.stopped = False
+
+    def stop(self):
+        self.stopped = True
+        print("stopping response thread...")
 
     def run(self):
         message = ''
         while True:
+            if self.stopped:
+                print("response thread stopped.")
+                return
             try:
+                rlist, wlist, xlist = select.select([self.swcz.socket], [], [], 1.0)
+                if len(rlist) == 0:
+                    continue
                 buff = self.swcz.socket.recv(1024)
-            except:
+                if len(buff) == 0:
+                    self.stop()
+                    self.swcz.handle_disconnect()
+                    continue
+            except Exception as e:
+                print(str(e))
                 return
             eof_index = get_eof_index(buff, message)
             if eof_index == -1:
                 message += buff
             else:
                 message += buff[:eof_index]
-                self.swcz.handle(message)
+                self.swcz.handle_recv(message)
                 message = buff[eof_index + 1:]
 
 
-class SWCZSocket:
+class SWCZSocket(object):
     """ Creates new secure socket layout wrapper around sock,
         a socket.socket
         The socket uses the value g, p, secret_int for encryption,
@@ -70,6 +97,13 @@ class SWCZSocket:
         self.secret = secret_int
         self.shared_key = shared_key
         self.gen_key = None
+        self.logger = None
+        self.response_thread = None
+        self.queue_mode = False
+        self.message_queue = Queue()
+
+    def set_logger(self, logger):
+        self.logger = logger
 
     def do_handshake(self):
         """ Performs the initialization and authentication of the channel """
@@ -81,11 +115,37 @@ class SWCZSocket:
         self.response_thread.start()
 
     def send(self, message):
-        socket.send(message)  # TODO do encryption
+        if self.queue_mode:
+            self.message_queue.put(message)
+            print("message added to queue. press continue...")
+        else:
+            self._send(message)
 
-    def handle(self, message):
+    def _send(self, message):
+        self.socket.send(message + EOF)  # TODO do encryption
+        self.log("SENT:'{}'".format(message))
+
+    def advance_queue(self):
+        if not self.message_queue.empty():
+            self._send(self.message_queue.get_nowait())
+
+    def handle_recv(self, message):
+        self.log("RECV:'{}'".format(message))
+
         if self.handler is not None:
-            self.handler.handle(message)
+            self.handler.handle_response(message)
+
+    def handle_disconnect(self):
+        self.log("DISCONNECTED")
+
+    def log(self, msg):
+        if self.logger:
+            self.logger.log(msg)
 
     def close(self):
+        print("stopping thread")
+        if self.response_thread:
+            self.response_thread.stop()
+        print("closing socket...")
         self.socket.close()
+        print("closed socket")
