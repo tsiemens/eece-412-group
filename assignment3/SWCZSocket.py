@@ -1,4 +1,5 @@
 import select, socket
+from Queue import Queue
 from threading import Thread
 
 EOF = '\x04'
@@ -94,7 +95,7 @@ class SWCZSocket(object):
         self.logger = None
         self.response_thread = None
         self.queue_mode = False
-        self.message_queue = []
+        self.message_queue = Queue()
 
     def set_logger(self, logger):
         self.logger = logger
@@ -110,21 +111,21 @@ class SWCZSocket(object):
 
     def send(self, message):
         if self.queue_mode:
-            self.message_queue.append(message)
+            self.message_queue.put(message)
             print("message added to queue. press continue...")
         else:
             self._send(message)
 
     def _send(self, message):
         self.socket.send(message + EOF)  # TODO do encryption
-        self.log("SENT:'%s'" % message)
+        self.log("SENT:'{}'".format(message))
 
     def advance_queue(self):
-        if len(self.message_queue) > 0:
-            self._send(self.message_queue.pop(0))
+        if not self.message_queue.empty():
+            self._send(self.message_queue.get_nowait())
 
     def handle_recv(self, message):
-        self.log("RECV:'%s'" % message)
+        self.log("RECV:'{}'".format(message))
 
         if self.handler is not None:
             self.handler.handle_response(message)

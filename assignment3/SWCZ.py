@@ -141,10 +141,8 @@ class SWCZ(Frame):
             self.parent.grid_rowconfigure(0, weight=1)
             self.update()
 
-
             self.parent.protocol("WM_DELETE_WINDOW", self._delete_window)
             self.parent.bind("<Destroy>", self._destroy)
-            #self.geometry(self.geometry())
     
     def _delete_window(self):
         print("delete")
@@ -156,19 +154,18 @@ class SWCZ(Frame):
 
     def _destroy(self, event):
         print("destroy")
-        pass
     
     def is_mode_server(self):
-            return self.mode.get() == RADIO_SERVER
+        return self.mode.get() == RADIO_SERVER
 
     def add_message(self, message):
-        add_lines_to_text(self.message_display, message)
+        self.add_lines_to_text(self.message_display, message)
     
     def add_debug_message(self, message):
-        add_lines_to_text(self.debug_display, message)
+        self.add_lines_to_text(self.debug_display, message)
 
-
-def add_lines_to_text(tktext, message):
-    tktext.insert(END, message)
-    tktext.see(END)
+    @staticmethod
+    def add_lines_to_text(tktext, message):
+        tktext.insert(END, message)
+        tktext.see(END)
 

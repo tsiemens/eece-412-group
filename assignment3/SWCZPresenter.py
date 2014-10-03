@@ -11,10 +11,10 @@ class SWCZPresenter(ViewListener, SWCZSocket.ResponseHandler,
         self.swczsocket = None
 
     def add_message(self, sendername, text):
-        self.view.add_message("{:s}:{:s}\n".format(sendername, text))
+        self.view.add_message("{}:{}\n".format(sendername, text))
 
     def on_mode_select(self):
-            print("Selected " + str(self.view.mode.get()) + " mode")
+            print("Selected mode {}".format(str(self.view.mode.get())))
 
     def get_ip(self):
         ip = self.view.ip_addr.get()
@@ -24,7 +24,8 @@ class SWCZPresenter(ViewListener, SWCZSocket.ResponseHandler,
         try:
             port = int(self.view.port.get())
             if port < 0 or port > 65535:
-                raise Exception("Invalid port: " + str(port))
+                # using str(port) here because it could be None
+                raise Exception("Invalid port: {}".format(str(port)))
             return port
         except Exception as e:
             self.log(str(e))
@@ -37,14 +38,14 @@ class SWCZPresenter(ViewListener, SWCZSocket.ResponseHandler,
             self.start_socket(ip, port)        
 
     def start_socket(self, ip, port):
-        print("Creating socket with ip: %s, port: %d" % (ip, port))
+        print("Creating socket with ip: {}, port: {:d}".format(ip, port))
         mysocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         if self.view.is_mode_server():
             mysocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             mysocket.bind((ip, port))
             mysocket.listen(1)
             conn, addr = mysocket.accept()
-            self.log("Connected to %s!" % str(addr))
+            self.log("Connected to {}!".format(addr))
             self.socket = conn
         else:
             self.socket = mysocket
