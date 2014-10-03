@@ -1,19 +1,24 @@
 import select, socket
 from Queue import Queue
 from threading import Thread
+from abc import ABCMeta, abstractmethod
 
 EOF = '\x04'
 DER = '\\'
 
 
 class ResponseHandler:
-    def handle_response(self, message):
-        pass
+    __metaclass__ = ABCMeta
+
+    @abstractmethod
+    def handle_response(self, message): pass
 
 
 class MessageLogger:
-    def log(self, messsage):
-        pass
+    __metaclass__ = ABCMeta
+
+    @abstractmethod
+    def log(self, messsage): pass
 
 
 def count_derefs_before(string, index):

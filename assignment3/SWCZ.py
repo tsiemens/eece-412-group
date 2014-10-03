@@ -2,12 +2,24 @@ try:
     from Tkinter import *
 except ImportError:
     from tkinter import *
+from abc import ABCMeta, abstractmethod
 
 class ViewListener(object):
+    __metaclass__ = ABCMeta
+
+    @abstractmethod
     def on_mode_select(self): pass
+
+    @abstractmethod
     def on_connect_button_press(self): pass
+
+    @abstractmethod
     def on_continue_button_press(self): pass
+
+    @abstractmethod
     def on_send_button_press(self): pass
+
+    @abstractmethod
     def on_window_destroyed(self): pass
 
 RADIO_SERVER = 1
