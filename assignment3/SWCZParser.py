@@ -1,5 +1,6 @@
 from modgrammar import *
 
+
 grammar_whitespace_mode = 'explicit'
 
 class Integer(Grammar):
