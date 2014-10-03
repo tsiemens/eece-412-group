@@ -7,14 +7,14 @@ EOF = '\x04'
 DER = '\\'
 
 
-class ResponseHandler:
+class ResponseHandler(object):
     __metaclass__ = ABCMeta
 
     @abstractmethod
     def handle_response(self, message): pass
 
 
-class MessageLogger:
+class MessageLogger(object):
     __metaclass__ = ABCMeta
 
     @abstractmethod
