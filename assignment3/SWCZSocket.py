@@ -1,4 +1,4 @@
-import socket
+import select, socket
 from threading import Thread
 
 EOF = '\x04'
@@ -6,7 +6,7 @@ DER = '\\'
 
 
 class ResponseHandler:
-    def handle(self, message):
+    def handle_response(self, message):
         pass
 
 
@@ -45,29 +45,40 @@ class ResponseThread(Thread):
     def __init__(self, secure_socket):
         super(ResponseThread, self).__init__()
         self.swcz = secure_socket
+        self.stopped = False
 
     def stop(self):
-        if self.process:
-            print("terminating")
-            self.process.terminate()
+        self.stopped = True
+        print("stopping response thread...")
 
     def run(self):
         message = ''
         while True:
+            if self.stopped:
+                print("response thread stopped.")
+                return
             try:
+                rlist, wlist, xlist = select.select([self.swcz.socket], [], [], 1.0)
+                if len(rlist) == 0:
+                    continue
                 buff = self.swcz.socket.recv(1024)
-            except:
+                if len(buff) == 0:
+                    self.stop()
+                    self.swcz.handle_disconnect()
+                    continue
+            except Exception as e:
+                print(str(e))
                 return
             eof_index = get_eof_index(buff, message)
             if eof_index == -1:
                 message += buff
             else:
                 message += buff[:eof_index]
-                self.swcz.handle(message)
+                self.swcz.handle_recv(message)
                 message = buff[eof_index + 1:]
 
 
-class SWCZSocket:
+class SWCZSocket(object):
     """ Creates new secure socket layout wrapper around sock,
         a socket.socket
         The socket uses the value g, p, secret_int for encryption,
@@ -82,6 +93,8 @@ class SWCZSocket:
         self.gen_key = None
         self.logger = None
         self.response_thread = None
+        self.queue_mode = False
+        self.message_queue = []
 
     def set_logger(self, logger):
         self.logger = logger
@@ -96,21 +109,37 @@ class SWCZSocket:
         self.response_thread.start()
 
     def send(self, message):
-        self.socket.send(message + EOF)  # TODO do encryption
-        if self.logger:
-            self.logger.log("SENT:'%s'" % message)
+        if self.queue_mode:
+            self.message_queue.append(message)
+            print("message added to queue. press continue...")
+        else:
+            self._send(message)
 
-    def handle(self, message):
-        if self.logger:
-            self.logger.log("RCV:'%s'" % message)
+    def _send(self, message):
+        self.socket.send(message + EOF)  # TODO do encryption
+        self.log("SENT:'%s'" % message)
+
+    def advance_queue(self):
+        if len(self.message_queue) > 0:
+            self._send(self.message_queue.pop(0))
+
+    def handle_recv(self, message):
+        self.log("RECV:'%s'" % message)
 
         if self.handler is not None:
-            self.handler.handle(message)
+            self.handler.handle_response(message)
+
+    def handle_disconnect(self):
+        self.log("DISCONNECTED")
+
+    def log(self, msg):
+        if self.logger:
+            self.logger.log(msg)
 
     def close(self):
         print("stopping thread")
         if self.response_thread:
-            response_thread.exit()
+            self.response_thread.stop()
         print("closing socket...")
         self.socket.close()
         print("closed socket")

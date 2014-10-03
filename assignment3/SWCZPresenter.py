@@ -53,10 +53,11 @@ class SWCZPresenter(ViewListener, SWCZSocket.ResponseHandler,
 
         self.swczsocket = SWCZSocket.SWCZSocket(self.socket, 2, 4, 6, "shared", True)
         self.swczsocket.set_logger(self)
+        self.swczsocket.queue_mode = True
         self.swczsocket.listen_async(self)
 
     def on_continue_button_press(self):
-        print("You pressed the continue button!")
+        self.swczsocket.advance_queue()
 
     def on_send_button_press(self):
         message = self.view.send_message.get()
@@ -67,9 +68,9 @@ class SWCZPresenter(ViewListener, SWCZSocket.ResponseHandler,
         if self.swczsocket:
            self.swczsocket.close() 
 
-    def handle(self, message):
+    def handle_response(self, message):
         """ Handle messages from the SWCZSocket """
-        self.add_message("Bob", message)
+        self.add_message("Them", message)
 
     def log(self, message):
         self.view.add_debug_message(message + '\n')
