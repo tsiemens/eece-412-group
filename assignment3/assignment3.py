@@ -14,6 +14,7 @@ def main():
     presenter = SWCZPresenter()
     view = SWCZ(presenter, root)
     presenter.bind(view)
+    root.title("SWCZ")
     root.mainloop()
 
 if __name__ == "__main__":
