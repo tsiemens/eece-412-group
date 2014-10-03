@@ -5,13 +5,16 @@ grammar_whitespace_mode = 'explicit'
 class Integer(Grammar):
     grammar = (WORD("0-9"))
 
+
 class Double(Grammar):
     grammar_whitespace_mode = 'explicit'
     grammar = (Integer, '.', Integer)
 
+
 class Version(Grammar):
     grammar_whitespace_mode = 'explicit'
     grammar = (L("SWCZ/"), Double)
+
 
 class IntProp(Grammar):
     grammar_whitespace_mode = 'optional'
@@ -19,6 +22,7 @@ class IntProp(Grammar):
 
     def pair(self):
         return (str(self[0]), int(str(self[2])))
+
 
 class IntPropList(Grammar):
     grammar_whitespace_mode = 'optional'
@@ -31,7 +35,8 @@ class IntPropList(Grammar):
             pair = e[1].pair()    
             pairs[pair[0]] = pair[1]
         return pairs
-    
+
+
 class InitClause(Grammar):
     grammar_whitespace_mode = 'optional'
     grammar = (OR("INITS", "INITC"), L(':'), IntPropList)
@@ -42,11 +47,13 @@ class InitClause(Grammar):
     def is_client(self):
         return str(self[0]) == "INITC"
 
+
 class AuthClause(Grammar):
     grammar = (OR("AUTHC", "AUTHS"), L(":"))
 
     def is_client(self):
         return str(self[0]) == "AUTHC"
+
 
 class Header(Grammar):
     grammar_whitespace_mode = 'optional'
@@ -54,14 +61,17 @@ class Header(Grammar):
     def strip_header(self, msg):
         return msg[len(str(self)):]
 
+
 class InitMsgHeader(Header):
     grammar = (Version, ';', InitClause)
 
     def init_clause(self):
         return self[2]
 
+
 class AuthMsgHeader(Header):
     grammar = (Version, L(';'), AuthClause)
+
 
 class MsgHeader(Header):
     grammar = (Version, L(';'), OPTIONAL(L("UPDATE_KEY"), L(";")), L('MSG:'))
@@ -72,5 +82,4 @@ class MsgHeader(Header):
             return str(optional[0]) == "UPDATE_KEY"
 
         return False
-
 
