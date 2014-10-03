@@ -1,10 +1,11 @@
-from SWCZ import SWCZ, ViewListener
 import socket
+
 import SWCZSocket
+from SWCZ import ViewListener
+
 
 class SWCZPresenter(ViewListener, SWCZSocket.ResponseHandler,
                     SWCZSocket.MessageLogger):
-   
     def bind(self, view):
         self.view = view
         self.socket = None
@@ -18,7 +19,7 @@ class SWCZPresenter(ViewListener, SWCZSocket.ResponseHandler,
 
     def get_ip(self):
         ip = self.view.ip_addr.get()
-        return ip if ip != None else ''
+        return ip if ip is not None else ''
 
     def get_port(self):
         try:
@@ -34,8 +35,8 @@ class SWCZPresenter(ViewListener, SWCZSocket.ResponseHandler,
     def on_connect_button_press(self):
         port = self.get_port()
         ip = self.get_ip()
-        if port != None and ip != None:
-            self.start_socket(ip, port)        
+        if port is not None and ip is not None:
+            self.start_socket(ip, port)
 
     def start_socket(self, ip, port):
         print("Creating socket with ip: {}, port: {:d}".format(ip, port))
@@ -52,7 +53,8 @@ class SWCZPresenter(ViewListener, SWCZSocket.ResponseHandler,
             self.socket.connect((ip, port))
             self.log("Connected!")
 
-        self.swczsocket = SWCZSocket.SWCZSocket(self.socket, 2, 4, 6, "shared", True)
+        self.swczsocket = SWCZSocket.SWCZSocket(self.socket, 2, 4, 6, "shared",
+                                                True)
         self.swczsocket.set_logger(self)
         self.swczsocket.queue_mode = True
         self.swczsocket.listen_async(self)
@@ -67,7 +69,7 @@ class SWCZPresenter(ViewListener, SWCZSocket.ResponseHandler,
 
     def on_window_destroyed(self):
         if self.swczsocket:
-           self.swczsocket.close() 
+            self.swczsocket.close()
 
     def handle_response(self, message):
         """ Handle messages from the SWCZSocket """
@@ -75,4 +77,3 @@ class SWCZPresenter(ViewListener, SWCZSocket.ResponseHandler,
 
     def log(self, message):
         self.view.add_debug_message(message + '\n')
-  

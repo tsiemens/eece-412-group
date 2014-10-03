@@ -1,4 +1,6 @@
-import hashlib, hmac
+import hmac
+import hashlib
+
 
 class Message(object):
     def __init__(self, key):
@@ -28,5 +30,3 @@ class Message(object):
 
     def compute_digest(self, plaintext):
         return hmac.new(self.key, plaintext, hashlib.sha512).hexdigest()
-
-

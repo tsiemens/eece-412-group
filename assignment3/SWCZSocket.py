@@ -1,5 +1,8 @@
-import select, socket
-from Queue import Queue
+import select
+try:
+    from Queue import Queue
+except ImportError:
+    from queue import Queue
 from threading import Thread
 from abc import ABCMeta, abstractmethod
 
@@ -11,14 +14,16 @@ class ResponseHandler(object):
     __metaclass__ = ABCMeta
 
     @abstractmethod
-    def handle_response(self, message): pass
+    def handle_response(self, message):
+        pass
 
 
 class MessageLogger(object):
     __metaclass__ = ABCMeta
 
     @abstractmethod
-    def log(self, messsage): pass
+    def log(self, messsage):
+        pass
 
 
 def count_derefs_before(string, index):
@@ -64,7 +69,8 @@ class ResponseThread(Thread):
                 print("response thread stopped.")
                 return
             try:
-                rlist, wlist, xlist = select.select([self.swcz.socket], [], [], 1.0)
+                rlist, wlist, xlist = select.select([self.swcz.socket], [], [],
+                                                    1.0)
                 if len(rlist) == 0:
                     continue
                 buff = self.swcz.socket.recv(1024)

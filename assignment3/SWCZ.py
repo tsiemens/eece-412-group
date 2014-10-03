@@ -4,26 +4,33 @@ except ImportError:
     from tkinter import *
 from abc import ABCMeta, abstractmethod
 
+RADIO_SERVER = 1
+RADIO_CLIENT = 2
+
+
 class ViewListener(object):
     __metaclass__ = ABCMeta
 
     @abstractmethod
-    def on_mode_select(self): pass
+    def on_mode_select(self):
+        pass
 
     @abstractmethod
-    def on_connect_button_press(self): pass
+    def on_connect_button_press(self):
+        pass
 
     @abstractmethod
-    def on_continue_button_press(self): pass
+    def on_continue_button_press(self):
+        pass
 
     @abstractmethod
-    def on_send_button_press(self): pass
+    def on_send_button_press(self):
+        pass
 
     @abstractmethod
-    def on_window_destroyed(self): pass
+    def on_window_destroyed(self):
+        pass
 
-RADIO_SERVER = 1
-RADIO_CLIENT = 2
 
 class SWCZ(Frame):
     def __init__(self, listener, parent=None):
@@ -117,8 +124,11 @@ class SWCZ(Frame):
                                     sticky='EW')
 
             # Continue Button
-            self.continue_button = Button(self, text="Continue",
-                                          command=self.listener.on_continue_button_press)
+            self.continue_button = Button(
+                self,
+                text="Continue",
+                command=self.listener.on_continue_button_press
+            )
             self.continue_button.grid(column=10, columnspan=6, row=16,
                                       sticky='EW')
 
@@ -135,8 +145,11 @@ class SWCZ(Frame):
                                          sticky='EW')
 
             # Send Button
-            self.send_button = Button(self, text="Send",
-                                      command=self.listener.on_send_button_press)
+            self.send_button = Button(
+                self,
+                text="Send",
+                command=self.listener.on_send_button_press
+            )
             self.send_button.grid(column=12, columnspan=4, row=18, sticky='EW')
 
             # General Configuration
@@ -155,7 +168,7 @@ class SWCZ(Frame):
 
             self.parent.protocol("WM_DELETE_WINDOW", self._delete_window)
             self.parent.bind("<Destroy>", self._destroy)
-    
+
     def _delete_window(self):
         print("delete")
         try:
@@ -166,13 +179,13 @@ class SWCZ(Frame):
 
     def _destroy(self, event):
         print("destroy")
-    
+
     def is_mode_server(self):
         return self.mode.get() == RADIO_SERVER
 
     def add_message(self, message):
         self.add_lines_to_text(self.message_display, message)
-    
+
     def add_debug_message(self, message):
         self.add_lines_to_text(self.debug_display, message)
 
@@ -180,4 +193,3 @@ class SWCZ(Frame):
     def add_lines_to_text(tktext, message):
         tktext.insert(END, message)
         tktext.see(END)
-
