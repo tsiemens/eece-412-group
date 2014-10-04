@@ -1,11 +1,11 @@
 import unittest
 import hashlib, hmac
-from assignment3.Message import *
+from assignment3.MessageAuthenticator import *
 
-class TestMessage(unittest.TestCase):
+class TestMessageAuthenticator(unittest.TestCase):
 
     def setUp(self):
-        self.message = Message("1234")
+        self.message = MessageAuthenticator("1234")
 
     def test_sign(self):
         self.assertEquals(self.message.sign("test"), "test471f609bf6d8b0d6419ec68efd5453b3922560aa3f351088e35a424c30e43725c261f8e631f34cb06ca475ae678b0aa19b5b0c7690dff30b0d88e96a077203f5")
