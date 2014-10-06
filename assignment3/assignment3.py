@@ -5,15 +5,12 @@ except ImportError:
     from tkinter import Tk
 
 from SWCZ import SWCZ
-from SWCZPresenter import SWCZPresenter
 
 
 def main():
     root = Tk()
 
-    presenter = SWCZPresenter()
-    view = SWCZ(presenter, root)
-    presenter.bind(view)
+    SWCZ(root)
     root.title("SWCZ")
     root.mainloop()
 

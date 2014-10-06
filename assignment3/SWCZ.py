@@ -1,42 +1,19 @@
+import socket
 try:
     from Tkinter import *
 except ImportError:
     from tkinter import *
-from abc import ABCMeta, abstractmethod
+
+from SWCZSocket import SWCZSocket
 
 RADIO_SERVER = 1
 RADIO_CLIENT = 2
 
 
-class ViewListener(object):
-    __metaclass__ = ABCMeta
-
-    @abstractmethod
-    def on_mode_select(self):
-        pass
-
-    @abstractmethod
-    def on_connect_button_press(self):
-        pass
-
-    @abstractmethod
-    def on_continue_button_press(self):
-        pass
-
-    @abstractmethod
-    def on_send_button_press(self):
-        pass
-
-    @abstractmethod
-    def on_window_destroyed(self):
-        pass
-
-
 class SWCZ(Frame):
-    def __init__(self, listener, parent=None):
+    def __init__(self, parent=None):
             Frame.__init__(self, parent)
             self.parent = parent
-            self.listener = listener
             self.initialize()
 
     def initialize(self):
@@ -51,7 +28,7 @@ class SWCZ(Frame):
                 text="Server",
                 variable=self.mode,
                 value=RADIO_SERVER,
-                command=self.listener.on_mode_select
+                command=self.on_mode_select
             )
             self.server_select.grid(column=1, columnspan=15, row=0,
                                     sticky='EW')
@@ -61,7 +38,7 @@ class SWCZ(Frame):
                 text="Client",
                 variable=self.mode,
                 value=RADIO_CLIENT,
-                command=self.listener.on_mode_select
+                command=self.on_mode_select
             )
             self.client_select.grid(column=1, columnspan=15, row=1,
                                     sticky='EW')
@@ -94,7 +71,7 @@ class SWCZ(Frame):
             self.connect_button = Button(
                 self,
                 text="Connect",
-                command=self.listener.on_connect_button_press
+                command=self.on_connect_button_press
             )
             self.connect_button.grid(column=10, columnspan=6, row=3,
                                      sticky='EW')
@@ -127,7 +104,7 @@ class SWCZ(Frame):
             self.continue_button = Button(
                 self,
                 text="Continue",
-                command=self.listener.on_continue_button_press
+                command=self.on_continue_button_press
             )
             self.continue_button.grid(column=10, columnspan=6, row=16,
                                       sticky='EW')
@@ -148,7 +125,7 @@ class SWCZ(Frame):
             self.send_button = Button(
                 self,
                 text="Send",
-                command=self.listener.on_send_button_press
+                command=self.on_send_button_press
             )
             self.send_button.grid(column=12, columnspan=4, row=18, sticky='EW')
 
@@ -172,7 +149,7 @@ class SWCZ(Frame):
     def _delete_window(self):
         print("delete")
         try:
-            self.listener.on_window_destroyed()
+            self.on_window_destroyed()
             self.parent.destroy()
         except:
             pass
@@ -183,8 +160,11 @@ class SWCZ(Frame):
     def is_mode_server(self):
         return self.mode.get() == RADIO_SERVER
 
-    def add_message(self, message):
-        self.add_lines_to_text(self.message_display, message)
+    def add_message(self, sendername, text):
+        self.add_lines_to_text(
+            self.message_display,
+            "{}:{}\n".format(sendername, text)
+        )
 
     def add_debug_message(self, message):
         self.add_lines_to_text(self.debug_display, message)
@@ -193,3 +173,65 @@ class SWCZ(Frame):
     def add_lines_to_text(tktext, message):
         tktext.insert(END, message)
         tktext.see(END)
+
+    def on_mode_select(self):
+            print("Selected mode {}".format(self.mode.get()))
+
+    def get_ip(self):
+        ip = self.ip_addr.get()
+        return ip if ip is not None else ''
+
+    def get_port(self):
+        try:
+            port = int(self.port.get())
+            if port < 0 or port > 65535:
+                raise Exception("Invalid port: {}".format(port))
+            return port
+        except Exception as e:
+            self.log(str(e))
+            return None
+
+    def on_connect_button_press(self):
+        port = self.get_port()
+        ip = self.get_ip()
+        if port is not None and ip is not None:
+            self.start_socket(ip, port)
+
+    def start_socket(self, ip, port):
+        print("Creating socket with ip: {}, port: {}".format(ip, port))
+        mysocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        if self.is_mode_server():
+            mysocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            mysocket.bind((ip, port))
+            mysocket.listen(1)
+            conn, addr = mysocket.accept()
+            self.log("Connected to {}!".format(addr))
+            self.socket = conn
+        else:
+            self.socket = mysocket
+            self.socket.connect((ip, port))
+            self.log("Connected!")
+
+        self.swczsocket = SWCZSocket(self.socket, 2, 4, 6, "shared", True)
+        self.swczsocket.set_logger(self)
+        self.swczsocket.queue_mode = True
+        self.swczsocket.listen_async(self)
+
+    def on_continue_button_press(self):
+        self.swczsocket.advance_queue()
+
+    def on_send_button_press(self):
+        message = self.send_message.get()
+        self.swczsocket.send(message)
+        self.add_message("Me", message)
+
+    def on_window_destroyed(self):
+        if self.swczsocket:
+            self.swczsocket.close()
+
+    def handle_response(self, message):
+        """ Handle messages from the SWCZSocket """
+        self.add_message("Them", message)
+
+    def log(self, message):
+        self.add_debug_message(message + '\n')
