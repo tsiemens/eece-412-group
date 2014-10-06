@@ -1,4 +1,4 @@
-import unittest, hashlib, hmac
+import unittest
 from assignment3.MessageCrypto import *
 
 class TestMessageCrypto(unittest.TestCase):

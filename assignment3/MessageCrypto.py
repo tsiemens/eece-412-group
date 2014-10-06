@@ -1,9 +1,11 @@
 from Crypto.Cipher import AES
-import os, base64
+import os
+import base64
 
 
 class MessageCrypto(object):
     def __init__(self, key):
+        """" Initialize the Message cryptosystem with a 128 byte key (16 Chars) """
         self.key = key
 
     def encrypt(self, plaintext):
