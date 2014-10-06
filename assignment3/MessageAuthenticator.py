@@ -2,7 +2,6 @@ import hmac
 import hashlib
 
 
-
 class MessageAuthenticator(object):
     def __init__(self, key):
         self.key = key
