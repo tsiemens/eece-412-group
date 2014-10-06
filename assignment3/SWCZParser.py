@@ -3,6 +3,7 @@ from modgrammar import *
 
 grammar_whitespace_mode = 'explicit'
 
+
 class Integer(Grammar):
     grammar = (WORD("0-9"))
 
@@ -31,9 +32,9 @@ class IntPropList(Grammar):
 
     def props(self):
         pair = self[0].pair()
-        pairs = {pair[0] : pair[1]}
+        pairs = {pair[0]: pair[1]}
         for e in self.elements[1]:
-            pair = e[1].pair()    
+            pair = e[1].pair()
             pairs[pair[0]] = pair[1]
         return pairs
 
@@ -83,4 +84,3 @@ class MsgHeader(Header):
             return str(optional[0]) == "UPDATE_KEY"
 
         return False
-
