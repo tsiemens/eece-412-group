@@ -1,5 +1,6 @@
 import unittest
-import hashlib, hmac
+import hashlib
+import hmac
 from assignment3.MessageAuthenticator import *
 
 class TestMessageAuthenticator(unittest.TestCase):
