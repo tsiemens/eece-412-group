@@ -212,12 +212,14 @@ class SWCZ(Frame):
                 self.socket.connect((ip, port))
                 self.log("Connected!")
             except ConnectionRefusedError:
-                print("Connection Reused")
+                print("Connection Refused")
             except TimeoutError:
                 print("Connection Timeout")
-            except Exception:
-                print("Connection Exception")
-
+            except Exception as e:
+                print(str(e))
+            finally:
+                return
+				
         self.swczsocket = SWCZSocket(
             self,
             self.socket,
