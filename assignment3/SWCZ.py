@@ -14,6 +14,7 @@ class SWCZ(Frame):
     def __init__(self, parent=None):
             Frame.__init__(self, parent)
             self.parent = parent
+            self.swczsocket = None
             self.initialize()
 
     def initialize(self):
@@ -144,18 +145,15 @@ class SWCZ(Frame):
             self.update()
 
             self.parent.protocol("WM_DELETE_WINDOW", self._delete_window)
-            self.parent.bind("<Destroy>", self._destroy)
 
     def _delete_window(self):
         print("delete")
         try:
-            self.on_window_destroyed()
+            if self.swczsocket:
+                self.swczsocket.close()
             self.parent.destroy()
-        except:
-            pass
-
-    def _destroy(self, event):
-        print("destroy")
+        except Exception as e:
+            print(str(e))
 
     def is_mode_server(self):
         return self.mode.get() == RADIO_SERVER
@@ -219,11 +217,16 @@ class SWCZ(Frame):
                 print("Connection Timeout")
             except Exception:
                 print("Connection Exception")
-				
-        self.swczsocket = SWCZSocket(self.socket, 2, 4, 6, "shared", True)
-        self.swczsocket.set_logger(self)
-        self.swczsocket.queue_mode = True
-        self.swczsocket.listen_async(self)
+
+        self.swczsocket = SWCZSocket(
+            self,
+            self.socket,
+            2,
+            4,
+            6,
+            "shared",
+            self.is_mode_server()
+        )
 
     def on_continue_button_press(self):
         self.swczsocket.advance_queue()
@@ -232,10 +235,6 @@ class SWCZ(Frame):
         message = self.send_message.get()
         self.swczsocket.send(message)
         self.add_message("Me", message)
-
-    def on_window_destroyed(self):
-        if self.swczsocket:
-            self.swczsocket.close()
 
     def handle_response(self, message):
         """ Handle messages from the SWCZSocket """
