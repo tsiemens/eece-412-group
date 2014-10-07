@@ -209,9 +209,17 @@ class SWCZ(Frame):
             self.socket = conn
         else:
             self.socket = mysocket
-            self.socket.connect((ip, port))
-            self.log("Connected!")
-
+            self.socket.settimeout(10)
+            try:
+                self.socket.connect((ip, port))
+                self.log("Connected!")
+            except ConnectionRefusedError:
+                print("Connection Reused")
+            except TimeoutError:
+                print("Connection Timeout")
+            except Exception:
+                print("Connection Exception")
+				
         self.swczsocket = SWCZSocket(self.socket, 2, 4, 6, "shared", True)
         self.swczsocket.set_logger(self)
         self.swczsocket.queue_mode = True
