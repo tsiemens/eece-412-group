@@ -1,6 +1,5 @@
 from Crypto.Cipher import AES
 import os
-import base64
 
 
 class MessageCrypto(object):
@@ -9,16 +8,15 @@ class MessageCrypto(object):
         self.key = key
 
     def encrypt(self, plaintext):
-        """ Returns ciphertext prepended by IV - Base64 Encoded """
+        """ Returns ciphertext prepended by IV """
         iv = os.urandom(16)
         crypto_system = self._init_crypto_system(iv)
-        return base64.b64encode(iv + crypto_system.encrypt(self._pad_message(plaintext)))
+        return iv + crypto_system.encrypt(self._pad_message(plaintext))
 
     def decrypt(self, ciphertext):
-        """ Returns plaintext from ciphertext, prepended by IV - Base64 Encoded """
-        binary_ciphertext = base64.b64decode(ciphertext)
-        crypto_system = self._init_crypto_system(binary_ciphertext[:16])
-        plaintext = crypto_system.decrypt(binary_ciphertext[16:])
+        """ Returns plaintext from ciphertext, prepended by IV """
+        crypto_system = self._init_crypto_system(ciphertext[:16])
+        plaintext = crypto_system.decrypt(ciphertext[16:])
         return self._unpad_message(plaintext)
 
     def _init_crypto_system(self, iv):

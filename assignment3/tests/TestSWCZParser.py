@@ -63,8 +63,8 @@ class TestSWCZParser(unittest.TestCase):
         self.assertEquals(result.props(), {'p': 4, 'm': 9, 'n': 45})
 
     def test_IntProp_noval2(self):
-        with self.assertRaises(ParseError):
-            IntPropList.parser().parse_string("p=3,m=,m=3", eof=True)
+        result = IntPropList.parser().parse_string("p=3,m=,m=3", eof=True)
+        self.assertEquals(result.props(), {'p': 3})
 
     def test_IntProp_noname2(self):
         with self.assertRaises(ParseError):
