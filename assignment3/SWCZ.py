@@ -208,8 +208,10 @@ class SWCZ(Frame):
         else:
             self.socket = mysocket
             self.socket.settimeout(10)
+            connected = False
             try:
                 self.socket.connect((ip, port))
+                connected = True
                 self.log("Connected!")
             except ConnectionRefusedError:
                 print("Connection Refused")
@@ -218,7 +220,8 @@ class SWCZ(Frame):
             except Exception as e:
                 print(str(e))
             finally:
-                return
+                if not connected:
+                    return
 				
         self.swczsocket = SWCZSocket(
             self,
@@ -235,6 +238,7 @@ class SWCZ(Frame):
 
     def on_send_button_press(self):
         message = self.send_message.get()
+        print(self.swczsocket)
         self.swczsocket.send(message)
         self.add_message("Me", message)
 
