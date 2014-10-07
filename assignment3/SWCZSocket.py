@@ -13,8 +13,8 @@ class SWCZSocket(object):
         self.p = p
         self.secret = secret_int
         self.shared_key = shared_key
+        self.is_server = is_server
         self.gen_key = None
-        self.logger = None
 
         self.socket = AsyncMsgSocket(frame, sock)
 
@@ -32,6 +32,7 @@ class SWCZSocket(object):
         self.socket.advance_queue()
 
     def handle_response(self, msg):
+        # TODO: decrypt
         self.frame.add_message("Them", msg)
 
     def close(self):
