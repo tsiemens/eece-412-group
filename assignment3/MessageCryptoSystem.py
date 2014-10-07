@@ -12,13 +12,13 @@ class MessageCryptoSystem(object):
         self.crypto = MessageCrypto(session_key)
         self.auth = MessageAuthenticator(shared_key)
 
-    def send(self, plaintext):
+    def wrap_message(self, plaintext):
         """ Prepares signed, encrypted, and signed message """
         signed = self.auth.sign(plaintext)
         encrypted = self.crypto.encrypt(signed)
         return self.auth.sign(encrypted)
 
-    def receive(self, ciphertext):
+    def unwrap_message(self, ciphertext):
         """ Returns plaintext from message """
         if self.auth.verify(ciphertext):
             decrypted = self.crypto.decrypt(self.auth.get_message(ciphertext))

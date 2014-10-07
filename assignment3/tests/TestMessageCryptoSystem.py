@@ -10,33 +10,33 @@ class TestMessageCryptoSystem(unittest.TestCase):
         self.crypto = MessageCrypto('1111111111111111')
         self.authenticator = MessageAuthenticator('some_shared_key')
 
-    def test_send_receive(self):
-        self.assertEqual(self.crypto_system.receive(self.crypto_system.send('test')), 'test')
+    def test_wrap_unwrap(self):
+        self.assertEqual(self.crypto_system.unwrap_message(self.crypto_system.wrap_message('test')), 'test')
 
-    def test_send_bad_inner_signature(self):
+    def test_wrap_bad_inner_signature(self):
         message = self.bad_inner_signature('test')
-        self.assertNotEqual(self.crypto_system.send('test'), message)
+        self.assertNotEqual(self.crypto_system.wrap_message('test'), message)
 
-    def test_send_bad_outer_signature(self):
+    def test_wrap_bad_outer_signature(self):
         message = self.bad_outer_signature('test')
-        self.assertNotEqual(self.crypto_system.send('test'), message)
+        self.assertNotEqual(self.crypto_system.wrap_message('test'), message)
 
-    def test_send_bad_crypto(self):
+    def test_wrap_bad_crypto(self):
         message = self.bad_crypto('test')
-        self.assertNotEqual(self.crypto_system.send('test'), message)
+        self.assertNotEqual(self.crypto_system.wrap_message('test'), message)
 
-    def test_receive_bad_inner_signature(self):
+    def test_unwrap_bad_inner_signature(self):
         message = self.bad_inner_signature('test')
-        self.assertNotEqual(self.crypto_system.send(message), None)
+        self.assertNotEqual(self.crypto_system.wrap_message(message), None)
 
-    def test_receive_bad_outer_signature(self):
+    def test_unwrap_bad_outer_signature(self):
         message = self.bad_outer_signature('test')
-        self.assertNotEqual(self.crypto_system.send(message), None)
+        self.assertNotEqual(self.crypto_system.wrap_message(message), None)
 
-    def test_receive_bad_crypto(self):
+    def test_unwrap_bad_crypto(self):
         message = self.bad_crypto('test')
         try:
-            self.crypto_system.receive(message)
+            self.crypto_system.unwrap_message(message)
         except TypeError, e:
             self.assertEqual(type(e), TypeError)
 
