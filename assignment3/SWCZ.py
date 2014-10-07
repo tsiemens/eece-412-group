@@ -222,19 +222,16 @@ class SWCZ(Frame):
             finally:
                 if not connected:
                     return
-				
+
         self.swczsocket = SWCZSocket(
             self,
             self.socket,
-            2,
-            4,
-            6,
             "shared",
             self.is_mode_server()
         )
 
     def on_continue_button_press(self):
-        self.swczsocket.advance_queue()
+        self.swczsocket.socket.advance_queue()
 
     def on_send_button_press(self):
         message = self.send_message.get()

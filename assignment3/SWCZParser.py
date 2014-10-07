@@ -41,20 +41,14 @@ class IntPropList(Grammar):
 
 class InitClause(Grammar):
     grammar_whitespace_mode = 'optional'
-    grammar = (OR("INITS", "INITC"), L(':'), IntPropList)
+    grammar = (L("INIT"), L(':'), IntPropList)
 
     def props(self):
         return self[2].props()
 
-    def is_client(self):
-        return str(self[0]) == "INITC"
-
 
 class AuthClause(Grammar):
-    grammar = (OR("AUTHC", "AUTHS"), L(":"))
-
-    def is_client(self):
-        return str(self[0]) == "AUTHC"
+    grammar = (L("AUTH"), L(":"))
 
 
 class Header(Grammar):
