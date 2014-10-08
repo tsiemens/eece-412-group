@@ -3,7 +3,11 @@ from modgrammar import ParseError
 from Crypto.Random.random import randint
 
 from AsyncMsgSocket import AsyncMsgSocket
-from SWCZParser import InitMsgHeader, AuthMsgHeader
+from SWCZParser import InitMsgHeader, AuthMsgHeader, MsgHeader
+
+class AuthenticationError(Exception):
+    def __init__(self, message):
+        super(Exception, self).__init__(message)
 
 
 class SWCZSocket(object):
@@ -31,52 +35,62 @@ class SWCZSocket(object):
     def do_handshake(self):
         """ Performs the initialization and authentication of the channel """
         A = pow(self.g, self.secret_int, self.p)
-        self.send("SWCZ/1.0; INIT:  S={}".format(A))
+        self._send("SWCZ/1.0; INIT:  S={}".format(A))
 
     def do_auth(self):
         # TODO: hash the shared secret
-        self.send("SWCZ/1.0; AUTH:{}".format(self.shared_key))
+        self._send("SWCZ/1.0; AUTH:{}".format(self.shared_key))
 
-    def send(self, msg):
+    def do_send_msg(self, msg):
+        # TODO decide on update key
+        self._send("SWCZ/1.0; MSG:{}".format(msg))
+        self.frame.add_message("Me", msg)
+    
+    def _send(self, msg):
         # TODO: encrypt
-        self.socket.send(msg)
+        self.socket.send(msg, plaintext=msg)
+    
+    def send(self, msg):
+        if self.state == "MSG":
+            self.do_send_msg(msg)
 
     def handle_response(self, msg):
-        if self.state == "INIT":
-            try:
+        try:
+            if self.state == "INIT":
                 parsed_msg = InitMsgHeader.parser().parse_string(msg, eof=True)
-            except ParseError:
-                self.close()
-                return
+                S = parsed_msg.init_clause().props()["S"]
+                self.session_key = pow(S, self.secret_int, self.p)
+                self.state = "AUTH"
 
-            S = parsed_msg.init_clause().props()["S"]
-            self.session_key = pow(S, self.secret_int, self.p)
-            self.state = "AUTH"
+                if self.is_server:
+                    self.do_handshake()
+                else:
+                    self.do_auth()
 
-            if self.is_server:
-                self.do_handshake()
-            else:
-                self.do_auth()
-        elif self.state == "AUTH":
-            try:
+            elif self.state == "AUTH":
                 parsed_msg = AuthMsgHeader.parser().parse_string(msg, eof=True)
-            except ParseError:
-                self.close()
-                return
+                shared_key = parsed_msg.strip_header(msg)
+                if not shared_key == self.shared_key:
+                    raise AuthenticationError(
+                        "Failed to authenticate: {} != {}".format(
+                            self.shared_key, shared_key))
 
-            shared_key = parsed_msg.strip_header(msg)
-            if not shared_key == self.shared_key:
-                self.close()
-                return
+                if self.is_server:
+                    self.do_auth()
 
-            if self.is_server:
-                self.do_auth()
+                self.state = "MSG"
+                self.socket.queue_mode = False
+            elif self.state == "MSG":
+                # TODO decrypt
+                # TODO check hmac
+                parsed_msg = MsgHeader.parser().parse_string(msg, eof=True)
+                # TODO parsed_msg.should_update_key()
+                chat_msg = parsed_msg.strip_header(msg)
+                self.frame.add_message("Them", chat_msg)
 
-            self.state = "MSG"
-        elif self.state == "MSG":
-            pass
-
-        self.frame.add_message("Them", msg)
+        except (ParseError, AuthenticationError) as e:
+            print(str(e))
+            self.close()
 
     def close(self):
         self.socket.close()

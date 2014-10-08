@@ -226,7 +226,7 @@ class SWCZ(Frame):
         self.swczsocket = SWCZSocket(
             self,
             self.socket,
-            "shared",
+            self.key.get(),
             self.is_mode_server()
         )
 
@@ -235,13 +235,7 @@ class SWCZ(Frame):
 
     def on_send_button_press(self):
         message = self.send_message.get()
-        print(self.swczsocket)
         self.swczsocket.send(message)
-        self.add_message("Me", message)
-
-    def handle_response(self, message):
-        """ Handle messages from the SWCZSocket """
-        self.add_message("Them", message)
 
     def log(self, message):
         self.add_debug_message(message + '\n')
