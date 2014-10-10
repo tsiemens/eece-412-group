@@ -57,6 +57,7 @@ class SWCZ(Frame):
             self.port_label.grid(column=10, columnspan=2, row=2, sticky='EW')
 
             self.port = StringVar()
+            self.port.set("8080") # our default port
             self.port_entry = Entry(self, textvariable=self.port)
             self.port_entry.grid(column=12, columnspan=4, row=2, sticky='EW')
 
@@ -65,6 +66,7 @@ class SWCZ(Frame):
             self.Key_label.grid(column=1, columnspan=2, row=3, sticky='EW')
 
             self.key = StringVar()
+            self.key.set("defaultkey")
             self.key_entry = Entry(self, textvariable=self.key)
             self.key_entry.grid(column=3, columnspan=6, row=3, sticky='EW')
 
@@ -105,7 +107,8 @@ class SWCZ(Frame):
             self.continue_button = Button(
                 self,
                 text="Continue",
-                command=self.on_continue_button_press
+                command=self.on_continue_button_press,
+                state=DISABLED
             )
             self.continue_button.grid(column=10, columnspan=6, row=16,
                                       sticky='EW')
@@ -236,6 +239,9 @@ class SWCZ(Frame):
     def on_send_button_press(self):
         message = self.send_message.get()
         self.swczsocket.send(message)
+
+    def set_continue_button_enabled(self, enabled):
+        self.continue_button.config(state=NORMAL if enabled else DISABLED)
 
     def log(self, message):
         self.add_debug_message(message + '\n')
