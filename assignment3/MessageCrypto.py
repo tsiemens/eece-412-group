@@ -1,5 +1,5 @@
-from Crypto.Cipher import AES
 import os
+from Crypto.Cipher import AES
 
 
 class MessageCrypto(object):

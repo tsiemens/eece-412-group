@@ -74,17 +74,17 @@ class AsyncMsgSocket(object):
         self.response_thread = ResponseThread(self)
         self.response_thread.start()
 
-    def send(self, message):
+    def send(self, message, plaintext=None):
         if self.queue_mode:
-            self.message_queue.put(message)
+            self.message_queue.put((message, plaintext))
             print("message added to queue. press continue...")
         else:
-            self._send(message)
+            self._send((message, plaintext))
 
-    def _send(self, message):
+    def _send(self, msg_and_plain):
         # here base64 is used so EOF will never occur elsewhere
-        self.socket.send(base64.b64encode(message) + EOF)
-        self.frame.log("SENT:'{}'".format(message))
+        self.socket.send(base64.b64encode(msg_and_plain[0]) + EOF)
+        self.frame.log("SENT:'{}'\n(Plain:'{}')".format(msg_and_plain[0], msg_and_plain[1]))
 
     def advance_queue(self):
         if not self.message_queue.empty():
@@ -104,4 +104,5 @@ class AsyncMsgSocket(object):
         if self.response_thread:
             self.response_thread.stop()
         self.socket.close()
+        self.handle_disconnect()
         print("closed socket")
