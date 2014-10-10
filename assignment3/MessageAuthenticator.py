@@ -17,8 +17,7 @@ class MessageAuthenticator(object):
             other_hmac = hashed_plaintext[-128:]
             our_hmac = self.compute_digest(plaintext)
             return other_hmac == our_hmac
-            # TODO: Figure out where to get timing attack resistance digest compare
-            # TODO: Shown as present in python 2.7.8?
+            # If PyCrypto 2.7.x is available, toggle compare_digest for timing protection
             # return hmac.compare_digest(other_hmac, our_hmac)
         return None
 
