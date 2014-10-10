@@ -69,6 +69,8 @@ class SWCZ(Frame):
             self.key_entry.grid(column=3, columnspan=6, row=3, sticky='EW')
 
             # Connect Button
+            self.connected = IntVar()
+            self.mode.set(0)  # initialize to disconnected
             self.connect_button = Button(
                 self,
                 text="Connect",
@@ -192,8 +194,13 @@ class SWCZ(Frame):
     def on_connect_button_press(self):
         port = self.get_port()
         ip = self.get_ip()
-        if port is not None and ip is not None:
+        if port is not None and ip is not None and self.connected.get() is 0:
+			# valid port and ip and listed as not connected - try and connect!
             self.start_socket(ip, port)
+        elif self.connected.get() is 1:
+			# connected - disconnect!
+            self.socket.close()
+            self.connect_button['text'] = "Connect"		
 
     def start_socket(self, ip, port):
         print("Creating socket with ip: {}, port: {}".format(ip, port))
@@ -213,6 +220,7 @@ class SWCZ(Frame):
                 self.socket.connect((ip, port))
                 connected = True
                 self.log("Connected!")
+                self.connect_button['text'] = "Disconnect"
             except ConnectionRefusedError:
                 print("Connection Refused")
             except TimeoutError:
