@@ -77,6 +77,7 @@ class AsyncMsgSocket(object):
     def send(self, message, plaintext=None):
         if self.queue_mode:
             self.message_queue.put((message, plaintext))
+            self.frame.set_continue_button_enabled(True)
             print("message added to queue. press continue...")
         else:
             self._send((message, plaintext))
@@ -89,6 +90,8 @@ class AsyncMsgSocket(object):
     def advance_queue(self):
         if not self.message_queue.empty():
             self._send(self.message_queue.get_nowait())
+            if self.message_queue.empty():
+                self.frame.set_continue_button_enabled(False)
 
     def handle_recv(self, message):
         message = base64.b64decode(message)
