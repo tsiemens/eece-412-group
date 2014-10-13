@@ -2,6 +2,7 @@ from math import factorial
 from modgrammar import ParseError
 from Crypto.Random.random import randint
 
+from MessageCryptoSystem import MessageCryptoSystem
 from AsyncMsgSocket import AsyncMsgSocket
 from SWCZParser import InitMsgHeader, AuthMsgHeader, MsgHeader
 
@@ -24,6 +25,7 @@ class SWCZSocket(object):
         self.is_server = is_server
         self.secret_int = randint(0, pow(2, 256))
         self.session_key = None
+        self.session_crypto = None
         self.state = "INIT"
 
         self.socket = AsyncMsgSocket(frame, sock)
@@ -47,8 +49,9 @@ class SWCZSocket(object):
         self.frame.add_message("Me", msg)
     
     def _send(self, msg):
-        # TODO: encrypt
-        self.socket.send(msg, plaintext=msg)
+        # TODO: encrypt - taken care of
+        self.message_crypto = MessageCryptoSystem(self.session_key, self.shared_key)
+        self.socket.send(msg, plaintext=seld.message_crypto.wrap_message(msg))
     
     def send(self, msg):
         if self.state == "MSG":
@@ -81,8 +84,8 @@ class SWCZSocket(object):
                 self.state = "MSG"
                 self.socket.queue_mode = False
             elif self.state == "MSG":
-                # TODO decrypt
-                # TODO check hmac
+                # TODO decrypt - taken care of
+                # TODO check hmac - taken care of
                 parsed_msg = MsgHeader.parser().parse_string(msg, eof=True)
                 # TODO parsed_msg.should_update_key()
                 chat_msg = parsed_msg.strip_header(msg)
