@@ -221,6 +221,7 @@ class SWCZ(Frame):
                 connected = True
                 self.log("Connected!")
                 self.connect_button['text'] = "Disconnect"
+                self.connected.set(0)
             except ConnectionRefusedError:
                 print("Connection Refused")
             except TimeoutError:
