@@ -86,9 +86,12 @@ class SWCZSocket(object):
             elif self.state == "MSG":
                 # TODO decrypt - taken care of
                 # TODO check hmac - taken care of
-                parsed_msg = MsgHeader.parser().parse_string(msg, eof=True)
+                self.message_crypto = MessageCryptoSystem(self.session_key, self.shared_key)
+                raw_message = self.message_crypto.unwrap_message(msg)
+				
+                parsed_msg = MsgHeader.parser().parse_string(raw_msg, eof=True)
                 # TODO parsed_msg.should_update_key()
-                chat_msg = parsed_msg.strip_header(msg)
+                chat_msg = parsed_msg.strip_header(raw_msg)
                 self.frame.add_message("Them", chat_msg)
 
         except (ParseError, AuthenticationError) as e:
