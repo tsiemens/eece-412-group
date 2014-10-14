@@ -37,22 +37,25 @@ class SWCZSocket(object):
     def do_handshake(self):
         """ Performs the initialization and authentication of the channel """
         A = pow(self.g, self.secret_int, self.p)
-        self._send("SWCZ/1.0; INIT:  S={}".format(A))
+        self._send_unencrypted("SWCZ/1.0; INIT:  S={}".format(A))
 
     def do_auth(self):
         # TODO: hash the shared secret
-        self._send("SWCZ/1.0; AUTH:{}".format(self.shared_key))
+        self._send_unencrypted("SWCZ/1.0; AUTH:{}".format(self.shared_key))
 
     def do_send_msg(self, msg):
         # TODO decide on update key
-        self._send("SWCZ/1.0; MSG:{}".format(msg))
+        self._send_encrypted("SWCZ/1.0; MSG:{}".format(msg))
         self.frame.add_message("Me", msg)
     
-    def _send(self, msg):
+    def _send_unencrypted(self, msg):
+        self.socket.send(msg, paintext=msg)
+
+    def _send_encrypted(self, msg):
         # TODO: encrypt - taken care of
         self.message_crypto = MessageCryptoSystem(self.session_key, self.shared_key)
         self.socket.send(msg, plaintext=self.message_crypto.wrap_message(msg))
-    
+        
     def send(self, msg):
         if self.state == "MSG":
             self.do_send_msg(msg)
@@ -86,7 +89,6 @@ class SWCZSocket(object):
             elif self.state == "MSG":
                 # TODO decrypt - taken care of
                 # TODO check hmac - taken care of
-                self.message_crypto = MessageCryptoSystem(self.session_key, self.shared_key)
                 raw_message = self.message_crypto.unwrap_message(msg)
 				
                 parsed_msg = MsgHeader.parser().parse_string(raw_msg, eof=True)
