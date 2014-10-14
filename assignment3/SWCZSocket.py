@@ -52,9 +52,8 @@ class SWCZSocket(object):
         self.socket.send(msg, plaintext=msg)
 
     def _send_encrypted(self, msg):
-        # TODO: encrypt - taken care of
-        self.message_crypto = MessageCryptoSystem(self.session_key, self.shared_key)
-        self.socket.send(self.message_crypto.wrap_message(msg), plaintext=msg)
+        self.socket.send(self.message_crypto.wrap_message(msg),
+                         plaintext=msg)
         
     def send(self, msg):
         if self.state == "MSG":
@@ -65,7 +64,9 @@ class SWCZSocket(object):
             if self.state == "INIT":
                 parsed_msg = InitMsgHeader.parser().parse_string(msg, eof=True)
                 S = parsed_msg.init_clause().props()["S"]
-                self.session_key = str(pow(S, self.secret_int, self.p))
+                self.session_key = str(pow(S, self.secret_int, self.p))[:32]
+                self.message_crypto = MessageCryptoSystem(self.session_key,
+                                                          self.shared_key)
                 self.state = "AUTH"
 
                 if self.is_server:
