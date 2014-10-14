@@ -49,7 +49,7 @@ class SWCZSocket(object):
         self.frame.add_message("Me", msg)
     
     def _send_unencrypted(self, msg):
-        self.socket.send(msg, paintext=msg)
+        self.socket.send(msg, plaintext=msg)
 
     def _send_encrypted(self, msg):
         # TODO: encrypt - taken care of
