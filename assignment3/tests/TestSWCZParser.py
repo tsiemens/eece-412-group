@@ -1,5 +1,6 @@
 import unittest
 from modgrammar import ParseError
+import base64
 
 from assignment3.SWCZParser import *
 
@@ -61,6 +62,10 @@ class TestSWCZParser(unittest.TestCase):
     def test_IntPropList3(self):
         result = IntPropList.parser().parse_string("p=4, m=9 ,n=45", eof=True)
         self.assertEquals(result.props(), {'p': 4, 'm': 9, 'n': 45})
+ 
+    def test_IntPropList3(self):
+        result = IntPropList.parser().parse_string("p=4, m=9 ,k={:s},n=45".format(base64.b64encode("test")), eof=True)
+        self.assertEquals(result.props(), {'p': 4, 'm': 9, 'k': "test", 'n': 45})
 
     def test_IntProp_noval2(self):
         result = IntPropList.parser().parse_string("p=3,m=,m=3", eof=True)

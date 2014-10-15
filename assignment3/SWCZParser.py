@@ -1,12 +1,11 @@
 from modgrammar import *
-
+import base64
 
 grammar_whitespace_mode = 'explicit'
 
 
 class Integer(Grammar):
     grammar = (WORD("0-9"))
-
 
 class Double(Grammar):
     grammar_whitespace_mode = 'explicit'
@@ -25,10 +24,16 @@ class IntProp(Grammar):
     def pair(self):
         return (str(self[0]), int(str(self[2])))
 
+class Base64Prop(Grammar):
+    grammar_whitespace_mode = 'optional'
+    grammar = (WORD("a-zA-Z_"), L("="), WORD("a-zA-Z=+/0-9" ))
+
+    def pair(self):
+        return (str(self[0]), base64.b64decode(str(self[2])))
 
 class IntPropList(Grammar):
     grammar_whitespace_mode = 'optional'
-    grammar = (IntProp, ZERO_OR_MORE(L(","), IntProp))
+    grammar = (IntProp, ZERO_OR_MORE(L(","), OR(IntProp, Base64Prop)))
 
     def props(self):
         pair = self[0].pair()
