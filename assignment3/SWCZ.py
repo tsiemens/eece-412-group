@@ -19,7 +19,8 @@ class SWCZ(Frame):
             Frame.__init__(self, parent)
             self.parent = parent
             self.swczsocket = None
-            self.log_queue = Queue()
+            self.debug_queue = Queue()
+            self.message_queue = Queue()
             self.initialize()
             self.parent.after(200, self.process_log_queue)
 
@@ -252,12 +253,19 @@ class SWCZ(Frame):
     def log(self, message):
         self.add_debug_message(message + '\n')
 
-    def append_log_queue(self, msg):
-        self.log_queue.put(msg)
+    def append_debug_queue(self, msg):
+        self.debug_queue.put(msg)
+
+    def append_message_queue(self, msg):
+        self.message_queue.put(msg)
 
     def process_log_queue(self):
-        if not self.log_queue.empty():
-            msg = self.log_queue.get()
+        if not self.debug_queue.empty():
+            msg = self.debug_queue.get()
             self.log(msg)
+
+        if not self.message_queue.empty():
+            msg = self.message_queue.get()
+            self.add_message(msg[0], msg[1])
 
         self.parent.after(200, self.process_log_queue)

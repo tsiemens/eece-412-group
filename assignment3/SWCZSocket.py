@@ -60,7 +60,7 @@ class SWCZSocket(object):
     def do_send_msg(self, msg):
         # TODO decide on update key
         self._send_encrypted("SWCZ/1.0; MSG:{}".format(msg))
-        self.frame.add_message("Me", msg)
+        self.frame.append_message_queue(("Me", msg))
 
     def _send_unencrypted(self, msg):
         self.socket.send(msg, plaintext=msg)
@@ -117,7 +117,7 @@ class SWCZSocket(object):
                 parsed_msg = MsgHeader.parser().parse_string(raw_msg, eof=True)
                 # TODO parsed_msg.should_update_key()
                 chat_msg = parsed_msg.strip_header(raw_msg)
-                self.frame.add_message("Them", chat_msg)
+                self.frame.append_message_queue(("Them", chat_msg))
 
         except (ParseError, AuthenticationError) as e:
             print(str(e))
