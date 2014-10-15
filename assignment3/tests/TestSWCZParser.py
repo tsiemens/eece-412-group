@@ -1,5 +1,6 @@
 import unittest
 from modgrammar import ParseError
+import base64
 
 from assignment3.SWCZParser import *
 
@@ -61,6 +62,10 @@ class TestSWCZParser(unittest.TestCase):
     def test_IntPropList3(self):
         result = IntPropList.parser().parse_string("p=4, m=9 ,n=45", eof=True)
         self.assertEquals(result.props(), {'p': 4, 'm': 9, 'n': 45})
+ 
+    def test_IntPropList3(self):
+        result = IntPropList.parser().parse_string("p=4, m=9 ,k={:s},n=45".format(base64.b64encode("test")), eof=True)
+        self.assertEquals(result.props(), {'p': 4, 'm': 9, 'k': "test", 'n': 45})
 
     def test_IntProp_noval2(self):
         result = IntPropList.parser().parse_string("p=3,m=,m=3", eof=True)
@@ -70,28 +75,17 @@ class TestSWCZParser(unittest.TestCase):
         with self.assertRaises(ParseError):
             IntProp.parser().parse_string("=4,m=4", eof=True)
 
-    def test_InitClient(self):
-        result = InitClause.parser().parse_string("INITC:p=4 , g=9,A=45",
+    def test_Init(self):
+        result = InitClause.parser().parse_string("INIT:p=4 , g=9,A=45",
                                                   eof=True)
         self.assertEquals(result.props(), {'p': 4, 'g': 9, 'A': 45})
-        self.assertTrue(result.is_client())
 
-    def test_InitServer(self):
-        result = InitClause.parser().parse_string("INITS: B=45", eof=True)
-        self.assertEquals(result.props(), {'B': 45})
-        self.assertFalse(result.is_client())
-
-    def test_AuthClient(self):
-        result = AuthClause.parser().parse_string("AUTHC: abc ed ", eof=True)
-        self.assertTrue(result.is_client())
-
-    def test_AuthServer(self):
-        result = AuthClause.parser().parse_string("AUTHS: abc ed ", eof=True)
-        self.assertFalse(result.is_client())
+    def test_Auth(self):
+        result = AuthClause.parser().parse_string("AUTH: abc ed ", eof=True)
 
     def test_InitMsg(self):
         result = InitMsgHeader.parser().parse_string(
-            "SWCZ/1.0; INITC:p=4, g=9, A=45",
+            "SWCZ/1.0; INIT:p=4, g=9, A=45",
             eof=True
         )
         self.assertEquals(
@@ -100,7 +94,7 @@ class TestSWCZParser(unittest.TestCase):
         )
 
     def test_AuthMsg(self):
-        msg = "SWCZ/1.0; AUTHC: some text \n "
+        msg = "SWCZ/1.0; AUTH: some text \n "
         result = AuthMsgHeader.parser().parse_string(msg, eof=True)
         self.assertEquals(result.strip_header(msg), " some text \n ")
 

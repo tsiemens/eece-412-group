@@ -85,7 +85,7 @@ class AsyncMsgSocket(object):
     def _send(self, msg_and_plain):
         # here base64 is used so EOF will never occur elsewhere
         self.socket.send(base64.b64encode(msg_and_plain[0]) + EOF)
-        self.frame.log("SENT:'{}'\n(Plain:'{}')".format(msg_and_plain[0], msg_and_plain[1]))
+        self.frame.log("SENT:'{:s}'\n(Plain:'{}')".format(hexstring(msg_and_plain[0]), msg_and_plain[1]))
 
     def advance_queue(self):
         if not self.message_queue.empty():
@@ -95,7 +95,7 @@ class AsyncMsgSocket(object):
 
     def handle_recv(self, message):
         message = base64.b64decode(message)
-        self.frame.log("RECV:'{}'".format(message))
+        self.frame.log("RECV:'{:s}'".format(hexstring(message)))
 
         if self.handler is not None:
             self.handler.handle_response(message)
@@ -109,3 +109,7 @@ class AsyncMsgSocket(object):
         self.socket.close()
         self.handle_disconnect()
         print("closed socket")
+
+def hexstring(s):
+    s = str(s)
+    return ":".join("{:02x}".format(ord(c)) for c in s)
