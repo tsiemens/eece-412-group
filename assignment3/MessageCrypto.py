@@ -26,7 +26,7 @@ class MessageCrypto(object):
     def _pad_message(self, plaintext):
         """ Pads plaintext with newline characters, to a round 16 bytes """
         pad_count = len(plaintext) % 16
-        padding = '\n\n\n\n\n\n\n\n\n\n\n\n\n\n'
+        padding = '\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n'
 
         if (pad_count != 0):
             return plaintext + padding[:(16 - pad_count)]
