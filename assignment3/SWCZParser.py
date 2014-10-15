@@ -33,7 +33,7 @@ class Base64Prop(Grammar):
 
 class IntPropList(Grammar):
     grammar_whitespace_mode = 'optional'
-    grammar = (IntProp, ZERO_OR_MORE(L(","), OR(IntProp, Base64Prop)))
+    grammar = (OR(IntProp, Base64Prop), ZERO_OR_MORE(L(","), OR(IntProp, Base64Prop)))
 
     def props(self):
         pair = self[0].pair()
@@ -51,6 +51,12 @@ class InitClause(Grammar):
     def props(self):
         return self[2].props()
 
+class HelloClause(Grammar):
+    grammar_whitespace_mode = 'optional'
+    grammar = (L("HELLO"), L(':'), IntPropList)
+
+    def props(self):
+        return self[2].props()
 
 class AuthClause(Grammar):
     grammar = (L("AUTH"), L(":"))
@@ -69,7 +75,12 @@ class InitMsgHeader(Header):
     def init_clause(self):
         return self[2]
 
+class HelloMsgHeader(Header):
+    grammar = (Version, ';', HelloClause)
 
+    def hello_clause(self):
+        return self[2]
+		
 class AuthMsgHeader(Header):
     grammar = (Version, L(';'), AuthClause)
 
