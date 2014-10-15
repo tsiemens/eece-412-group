@@ -45,11 +45,13 @@ class SWCZSocket(object):
         # TODO decide on update key
         self._send("SWCZ/1.0; MSG:{}".format(msg))
         self.frame.add_message("Me", msg)
-    
+
     def _send(self, msg):
         # TODO: encrypt
-        self.socket.send(msg, plaintext=msg)
-    
+        if self.socket.send(msg, plaintext=msg):
+            self.frame.toggle_continue_button(True)
+            # self.frame.set_continue_button_enabled(True)
+
     def send(self, msg):
         if self.state == "MSG":
             self.do_send_msg(msg)

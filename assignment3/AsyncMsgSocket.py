@@ -77,31 +77,38 @@ class AsyncMsgSocket(object):
     def send(self, message, plaintext=None):
         if self.queue_mode:
             self.message_queue.put((message, plaintext))
-            self.frame.set_continue_button_enabled(True)
+            # self.frame.set_continue_button_enabled(True)
+            self.frame.toggle_continue_button(True)
             print("message added to queue. press continue...")
         else:
             self._send((message, plaintext))
+            print("sent message={} - plaintext={}").format(message,plaintext)
 
     def _send(self, msg_and_plain):
         # here base64 is used so EOF will never occur elsewhere
         self.socket.send(base64.b64encode(msg_and_plain[0]) + EOF)
-        self.frame.log("SENT:'{}'\n(Plain:'{}')".format(msg_and_plain[0], msg_and_plain[1]))
+        print("SENT:'{}'\n(Plain:'{}')").format(msg_and_plain[0], msg_and_plain[1])
+        # self.frame.log("SENT:'{}'\n(Plain:'{}')".format(msg_and_plain[0], msg_and_plain[1]))
 
     def advance_queue(self):
         if not self.message_queue.empty():
             self._send(self.message_queue.get_nowait())
             if self.message_queue.empty():
-                self.frame.set_continue_button_enabled(False)
+                self.frame.toggle_continue_button(False)
+                # self.frame.set_continue_button_enabled(False)
+                print("continue button disabled!")
 
     def handle_recv(self, message):
         message = base64.b64decode(message)
-        self.frame.log("RECV:'{}'".format(message))
+        print("RECV:'{}'").format(message)
+        # self.frame.log("RECV:'{}'".format(message))
 
         if self.handler is not None:
             self.handler.handle_response(message)
 
     def handle_disconnect(self):
-        self.frame.log("DISCONNECTED")
+        print("DISCONNECTED")
+        # self.frame.log("DISCONNECTED")
 
     def close(self):
         if self.response_thread:

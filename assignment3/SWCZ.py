@@ -3,7 +3,10 @@ try:
     from Tkinter import *
 except ImportError:
     from tkinter import *
-
+try:
+    from Queue import Queue
+except ImportError:
+    from queue import Queue
 from SWCZSocket import SWCZSocket
 
 RADIO_SERVER = 1
@@ -15,6 +18,9 @@ class SWCZ(Frame):
             Frame.__init__(self, parent)
             self.parent = parent
             self.swczsocket = None
+            self.continue_queue = Queue()
+            self.debug_queue = Queue()
+            self.message_queue = Queue()
             self.initialize()
 
     def initialize(self):
@@ -149,6 +155,9 @@ class SWCZ(Frame):
 
             self.parent.protocol("WM_DELETE_WINDOW", self._delete_window)
 
+            # Start accepting events
+            self.poll_for_async_events()
+
     def _delete_window(self):
         print("delete")
         try:
@@ -161,14 +170,22 @@ class SWCZ(Frame):
     def is_mode_server(self):
         return self.mode.get() == RADIO_SERVER
 
-    def add_message(self, sendername, text):
-        self.add_lines_to_text(
-            self.message_display,
-            "{}:{}\n".format(sendername, text)
-        )
+    def toggle_continue_button(self, state):
+        print("toggle continue button {}").format(state)
+        self.continue_queue.put(state)
 
-    def add_debug_message(self, message):
-        self.add_lines_to_text(self.debug_display, message)
+    def add_message(self, sendername, text):
+        print("add message from {}: {}").format(sendername, text)
+        self.message_queue.put("{}:{}\n".format(sendername, text))
+        # self.add_lines_to_text(
+        #     self.message_display,
+        #     "{}:{}\n".format(sendername, text)
+        # )
+
+    # def add_debug_message(self, message):
+    #     print("add debug message: {}").format(message)
+    #     self.debug_queue.put(message)
+        # self.add_lines_to_text(self.debug_display, message)
 
     @staticmethod
     def add_lines_to_text(tktext, message):
@@ -234,7 +251,9 @@ class SWCZ(Frame):
         )
 
     def on_continue_button_press(self):
-        self.swczsocket.socket.advance_queue()
+        if not self.swczsocket.socket.advance_queue():
+            self.set_continue_button_enabled(False)
+
 
     def on_send_button_press(self):
         message = self.send_message.get()
@@ -244,4 +263,15 @@ class SWCZ(Frame):
         self.continue_button.config(state=NORMAL if enabled else DISABLED)
 
     def log(self, message):
-        self.add_debug_message(message + '\n')
+        print("log: {}").format(message)
+        self.debug_queue.put(message + '\n')
+        # self.add_debug_message(message + '\n')
+
+    def poll_for_async_events(self):
+        if not self.debug_queue.empty():
+            self.add_lines_to_text(self.debug_display, self.debug_queue.get_nowait())
+        if not self.message_queue.empty():
+            self.add_lines_to_text(self.debug_display, self.debug_queue.get_nowait())
+        if not self.continue_queue.empty():
+            self.set_continue_button_enabled(self.continue_queue.get_nowait())
+        self.after(200, self.poll_for_async_events)
