@@ -9,6 +9,7 @@ from MessageCryptoSystem import MessageCryptoSystem
 from AsyncMsgSocket import AsyncMsgSocket
 from SWCZParser import InitMsgHeader, HelloMsgHeader, MsgHeader
 
+
 class AuthenticationError(Exception):
     def __init__(self, message):
         super(Exception, self).__init__(message)
@@ -39,7 +40,7 @@ class SWCZSocket(object):
         if not is_server:
             self.do_handshake()
             self.state = "INIT"
-           
+
     def do_handshake(self):
         """ Performs the initialization and authentication of the channel """
         print("Sending Hello Message")
@@ -60,14 +61,14 @@ class SWCZSocket(object):
         # TODO decide on update key
         self._send_encrypted("SWCZ/1.0; MSG:{}".format(msg))
         self.frame.add_message("Me", msg)
-    
+
     def _send_unencrypted(self, msg):
         self.socket.send(msg, plaintext=msg)
 
     def _send_encrypted(self, msg):
         self.socket.send(self.message_crypto.wrap_message(msg),
                          plaintext=msg)
-        
+
     def send(self, msg):
         if self.state == "MSG":
             self.do_send_msg(msg)
@@ -86,14 +87,14 @@ class SWCZSocket(object):
             elif self.state == "INIT":
                 print("Receiving Init Message")
                 parsed_msg = InitMsgHeader.parser().parse_string(msg, eof=True)
-				
+
                 if not self.is_server:
                     self.their_nonce = str(parsed_msg.init_clause().props()["N"])
-					
+
                 S = parsed_msg.init_clause().props()["S"]
                 hash = parsed_msg.init_clause().props()["H"]
                 their_hash = hmac.new(self.my_nonce, self.shared_key, hashlib.sha512).hexdigest()
-				
+
                 self.session_key = str(pow(S, self.secret_int, self.p))[:32]
                 self.message_crypto = MessageCryptoSystem(self.session_key,
                                                           self.shared_key)
@@ -107,12 +108,12 @@ class SWCZSocket(object):
 
                 self.state = "MSG"
                 self.socket.queue_mode = False
-				
+
             elif self.state == "MSG":
                 # TODO decrypt - taken care of
                 # TODO check hmac - taken care of
                 raw_msg = self.message_crypto.unwrap_message(msg)
-				
+
                 parsed_msg = MsgHeader.parser().parse_string(raw_msg, eof=True)
                 # TODO parsed_msg.should_update_key()
                 chat_msg = parsed_msg.strip_header(raw_msg)

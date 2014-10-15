@@ -3,6 +3,10 @@ try:
     from Tkinter import *
 except ImportError:
     from tkinter import *
+try:
+    from Queue import Queue
+except ImportError:
+    from queue import Queue
 
 from SWCZSocket import SWCZSocket
 
@@ -15,7 +19,9 @@ class SWCZ(Frame):
             Frame.__init__(self, parent)
             self.parent = parent
             self.swczsocket = None
+            self.log_queue = Queue()
             self.initialize()
+            self.parent.after(200, self.process_log_queue)
 
     def initialize(self):
             self.grid(sticky=NSEW)
@@ -230,7 +236,7 @@ class SWCZ(Frame):
             self,
             self.socket,
             self.key.get(),
-            self.is_mode_server()
+            self.is_mode_server(),
         )
 
     def on_continue_button_press(self):
@@ -245,3 +251,13 @@ class SWCZ(Frame):
 
     def log(self, message):
         self.add_debug_message(message + '\n')
+
+    def append_log_queue(self, msg):
+        self.log_queue.put(msg)
+
+    def process_log_queue(self):
+        if not self.log_queue.empty():
+            msg = self.log_queue.get()
+            self.log(msg)
+
+        self.parent.after(200, self.process_log_queue)
