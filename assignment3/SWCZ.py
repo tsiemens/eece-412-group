@@ -21,6 +21,7 @@ class SWCZ(Frame):
             self.swczsocket = None
             self.debug_queue = Queue()
             self.message_queue = Queue()
+            self.continue_queue = Queue()
             self.initialize()
             self.parent.after(200, self.process_log_queue)
 
@@ -259,10 +260,17 @@ class SWCZ(Frame):
     def append_message_queue(self, msg):
         self.message_queue.put(msg)
 
+    def append_continue_queue(self, state):
+        self.continue_queue.put(state)
+
     def process_log_queue(self):
         if not self.debug_queue.empty():
             msg = self.debug_queue.get()
             self.log(msg)
+
+        if not self.continue_queue.empty():
+            state = self.continue_queue.get()
+            self.set_continue_button_enabled(state)
 
         if not self.message_queue.empty():
             msg = self.message_queue.get()

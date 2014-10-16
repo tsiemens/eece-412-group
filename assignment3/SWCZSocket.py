@@ -47,7 +47,6 @@ class SWCZSocket(object):
         self._send_unencrypted("SWCZ/1.0; HELLO:  N={}".format(self.my_nonce))
 
     def do_auth(self):
-        # TODO: hash the shared secret
         print("Sending Auth Message")
         self.my_hash = hmac.new(self.their_nonce, self.shared_key, hashlib.sha512).hexdigest()
         S = pow(self.g, self.secret_int, self.p)
@@ -58,7 +57,6 @@ class SWCZSocket(object):
             self._send_unencrypted("SWCZ/1.0; INIT: S={}, H={}".format(S, base64.b64encode(self.my_hash)))
 
     def do_send_msg(self, msg):
-        # TODO decide on update key
         self._send_encrypted("SWCZ/1.0; MSG:{}".format(msg))
         self.frame.append_message_queue(("Me", msg))
 
@@ -110,12 +108,9 @@ class SWCZSocket(object):
                 self.socket.queue_mode = False
 
             elif self.state == "MSG":
-                # TODO decrypt - taken care of
-                # TODO check hmac - taken care of
                 raw_msg = self.message_crypto.unwrap_message(msg)
 
                 parsed_msg = MsgHeader.parser().parse_string(raw_msg, eof=True)
-                # TODO parsed_msg.should_update_key()
                 chat_msg = parsed_msg.strip_header(raw_msg)
                 self.frame.append_message_queue(("Them", chat_msg))
 
