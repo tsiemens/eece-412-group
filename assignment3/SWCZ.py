@@ -3,6 +3,10 @@ try:
     from Tkinter import *
 except ImportError:
     from tkinter import *
+try:
+    from Queue import Queue
+except ImportError:
+    from queue import Queue
 
 from SWCZSocket import SWCZSocket
 
@@ -15,7 +19,11 @@ class SWCZ(Frame):
             Frame.__init__(self, parent)
             self.parent = parent
             self.swczsocket = None
+            self.debug_queue = Queue()
+            self.message_queue = Queue()
+            self.button_queue = Queue()
             self.initialize()
+            self.parent.after(200, self.process_log_queue)
 
     def initialize(self):
             self.grid(sticky=NSEW)
@@ -230,7 +238,7 @@ class SWCZ(Frame):
             self,
             self.socket,
             self.key.get(),
-            self.is_mode_server()
+            self.is_mode_server(),
         )
 
     def on_continue_button_press(self):
@@ -245,3 +253,27 @@ class SWCZ(Frame):
 
     def log(self, message):
         self.add_debug_message(message + '\n')
+
+    def append_debug_queue(self, msg):
+        self.debug_queue.put(msg)
+
+    def append_message_queue(self, msg):
+        self.message_queue.put(msg)
+
+    def append_button_queue(self, enabled):
+        self.button_queue.put(enabled)
+
+    def process_log_queue(self):
+        if not self.debug_queue.empty():
+            msg = self.debug_queue.get()
+            self.log(msg)
+
+        if not self.message_queue.empty():
+            msg = self.message_queue.get()
+            self.add_message(msg[0], msg[1])
+
+        if not self.button_queue.empty():
+            enabled = self.button_queue.get()
+            self.set_continue_button_enabled(enabled)
+
+        self.parent.after(200, self.process_log_queue)
